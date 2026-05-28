@@ -1,0 +1,72 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Step 2 — Tare Weight{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>New Weighing — Step 2 of 2</h2>
+
+    <div class="alert alert-info">
+        🏭 <strong>Step 2:</strong> Sugarcane has been offloaded.
+        Now enter the <strong>tare weight</strong>
+        (empty truck on the scale).
+    </div>
+
+    <!-- Transaction summary -->
+    <div style="background:#F1F8E9; border-radius:8px;
+                padding:16px; margin-bottom:20px;">
+        <table style="width:auto;">
+            <tr>
+                <td style="padding:4px 16px 4px 0;
+                           font-weight:bold; color:#555;">
+                    Receipt No.
+                </td>
+                <td>{{ transaction.receipt_number }}</td>
+            </tr>
+            <tr>
+                <td style="padding:4px 16px 4px 0;
+                           font-weight:bold; color:#555;">
+                    Farmer
+                </td>
+                <td>{{ transaction.farmer.full_name }}</td>
+            </tr>
+            <tr>
+                <td style="padding:4px 16px 4px 0;
+                           font-weight:bold; color:#555;">
+                    Vehicle
+                </td>
+                <td>{{ transaction.vehicle.plate_number }}</td>
+            </tr>
+            <tr>
+                <td style="padding:4px 16px 4px 0;
+                           font-weight:bold; color:#555;">
+                    Gross Weight
+                </td>
+                <td style="color:#1B5E20; font-weight:bold;">
+                    {{ transaction.gross_weight_kg }} kg
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Tare Weight (kg)</label>
+            {{ form.tare_weight_kg }}
+            {% if form.tare_weight_kg.errors %}
+                <div class="alert alert-error">
+                    {{ form.tare_weight_kg.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:8px;">
+            <button type="submit" class="btn btn-green">
+                Complete & Generate Receipt ✓
+            </button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

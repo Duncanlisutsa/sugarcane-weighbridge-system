@@ -1,0 +1,119 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Reports{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>📊 Weighbridge Reports</h2>
+
+    <!-- Filter form -->
+    <form method="GET" style="display:flex; gap:16px;
+                              flex-wrap:wrap; align-items:flex-end;
+                              margin-bottom:20px;">
+        <div class="form-group" style="margin:0; flex:1; min-width:140px;">
+            <label>From Date</label>
+            <input type="date" name="date_from"
+                   value="{{ date_from }}">
+        </div>
+
+        <div class="form-group" style="margin:0; flex:1; min-width:140px;">
+            <label>To Date</label>
+            <input type="date" name="date_to"
+                   value="{{ date_to }}">
+        </div>
+
+        <div class="form-group" style="margin:0; flex:2; min-width:180px;">
+            <label>Farmer</label>
+            <select name="farmer">
+                <option value="">-- All Farmers --</option>
+                {% for f in farmers %}
+                <option value="{{ f.id }}"
+                    {% if farmer_id == f.id|stringformat:"s" %}
+                        selected
+                    {% endif %}>
+                    {{ f.farmer_code }} — {{ f.full_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+            <button type="submit" class="btn btn-green">
+                🔍 Filter
+            </button>
+            <a href="{% url 'reports' %}" class="btn btn-gray">
+                Reset
+            </a>
+        </div>
+    </form>
+
+    <!-- Summary cards -->
+    <div class="summary-cards" style="margin-bottom:20px;">
+        <div class="summary-card">
+            <div class="number">{{ totals.total_count|default:"0" }}</div>
+            <div class="label">Total Transactions</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">
+                {{ totals.total_weight|floatformat:0|default:"0" }} kg
+            </div>
+            <div class="label">Total Net Weight</div>
+        </div>
+    </div>
+
+    <!-- Export button -->
+    <div style="margin-bottom:16px;">
+        <a href="{% url 'export_report_pdf' %}?date_from={{ date_from }}&date_to={{ date_to }}&farmer={{ farmer_id }}"
+           class="btn btn-blue">
+            ⬇ Export to PDF
+        </a>
+    </div>
+
+    <!-- Transactions table -->
+    {% if transactions %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Receipt No.</th>
+                    <th>Farmer</th>
+                    <th>Vehicle</th>
+                    <th>Gross (kg)</th>
+                    <th>Tare (kg)</th>
+                    <th>Net (kg)</th>
+                    <th>Clerk</th>
+                    <th>Date & Time</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>
+                        <a href="{% url 'receipt' t.pk %}"
+                           style="color:#1B5E20; font-weight:bold;">
+                            {{ t.receipt_number }}
+                        </a>
+                    </td>
+                    <td>{{ t.farmer.full_name }}</td>
+                    <td>{{ t.vehicle.plate_number }}</td>
+                    <td>{{ t.gross_weight_kg }}</td>
+                    <td>{{ t.tare_weight_kg }}</td>
+                    <td style="font-weight:bold; color:#1B5E20;">
+                        {{ t.net_weight_kg }}
+                    </td>
+                    <td>{{ t.clerk.full_name }}</td>
+                    <td>{{ t.gross_time|date:"d M Y H:i" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    {% else %}
+    <div class="alert alert-info">
+        No transactions found for the selected filters.
+    </div>
+    {% endif %}
+
+</div>
+
+{% endblock %}

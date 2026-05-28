@@ -1,0 +1,28 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Register Farmer{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width:600px;">
+    <h2>Register New Farmer</h2>
+    <form method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <div class="alert alert-error">{{ field.errors }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div style="display:flex; gap:12px; margin-top:8px;">
+            <button type="submit" class="btn btn-green">
+                Register Farmer
+            </button>
+            <a href="{% url 'clerk_dashboard' %}"
+               class="btn btn-gray">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

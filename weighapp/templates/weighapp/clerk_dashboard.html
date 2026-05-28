@@ -1,0 +1,64 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Clerk Dashboard{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Clerk Dashboard</h2>
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="number">{{ today_count }}</div>
+            <div class="label">Transactions Today</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">{{ today_weight|floatformat:0 }} kg</div>
+            <div class="label">Net Weight Today</div>
+        </div>
+    </div>
+<div style="display:flex; gap:12px; flex-wrap:wrap;">
+    <a href="{% url 'weighing_step1' %}" class="btn btn-green">
+        + New Weighing
+    </a>
+    <a href="{% url 'register_farmer' %}" class="btn btn-blue">
+        + Register Farmer
+    </a>
+    <a href="{% url 'register_vehicle' %}" class="btn btn-gray">
+        + Register Vehicle
+    </a>
+</div></div>
+
+{% if today_transactions %}
+<div class="card">
+    <h2>Today's Transactions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Receipt No.</th>
+                <th>Farmer</th>
+                <th>Vehicle</th>
+                <th>Net Weight</th>
+                <th>Status</th>
+                <th>Time</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in today_transactions %}
+            <tr>
+                <td>{{ t.receipt_number }}</td>
+                <td>{{ t.farmer.full_name }}</td>
+                <td>{{ t.vehicle.plate_number }}</td>
+                <td>{{ t.net_weight_kg|default:"Pending" }} kg</td>
+                <td>
+                    <span class="badge
+                        {% if t.status == 'complete' %}badge-green
+                        {% elif t.status == 'pending' %}badge-yellow
+                        {% else %}badge-red{% endif %}">
+                        {{ t.status|title }}
+                    </span>
+                </td>
+                <td>{{ t.gross_time|date:"H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+{% endblock %}

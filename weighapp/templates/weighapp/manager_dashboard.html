@@ -1,0 +1,58 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Manager Dashboard{% endblock %}
+{% block content %}
+<div class="card">
+    <h2>Manager Dashboard</h2>
+    <div class="summary-cards">
+        <div class="summary-card">
+            <div class="number">{{ today_count }}</div>
+            <div class="label">Transactions Today</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">{{ today_weight|floatformat:0 }} kg</div>
+            <div class="label">Total Net Weight Today</div>
+        </div>
+        <div class="summary-card">
+            <div class="number">{{ total_farmers }}</div>
+            <div class="label">Registered Farmers</div>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>Recent Transactions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Receipt No.</th>
+                <th>Farmer</th>
+                <th>Gross (kg)</th>
+                <th>Tare (kg)</th>
+                <th>Net (kg)</th>
+                <th>Status</th>
+                <th>Date</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for t in recent_transactions %}
+            <tr>
+                <td>{{ t.receipt_number }}</td>
+                <td>{{ t.farmer.full_name }}</td>
+                <td>{{ t.gross_weight_kg }}</td>
+                <td>{{ t.tare_weight_kg|default:"—" }}</td>
+                <td>{{ t.net_weight_kg|default:"—" }}</td>
+                <td>
+                    <span class="badge
+                        {% if t.status == 'complete' %}badge-green
+                        {% elif t.status == 'pending' %}badge-yellow
+                        {% else %}badge-red{% endif %}">
+                        {{ t.status|title }}
+                    </span>
+                </td>
+                <td>{{ t.gross_time|date:"d M Y H:i" }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endblock %}

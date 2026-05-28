@@ -1,0 +1,62 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Step 1 — Gross Weight{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>New Weighing — Step 1 of 2</h2>
+
+    <div class="alert alert-info">
+        🚛 <strong>Step 1:</strong> Select the farmer and vehicle,
+        then enter the <strong>gross weight</strong>
+        (full truck on the scale).
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label>Farmer</label>
+            {{ form.farmer }}
+            {% if form.farmer.errors %}
+                <div class="alert alert-error">
+                    {{ form.farmer.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>Vehicle</label>
+            {{ form.vehicle }}
+            {% if form.vehicle.errors %}
+                <div class="alert alert-error">
+                    {{ form.vehicle.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>Gross Weight (kg)</label>
+            {{ form.gross_weight_kg }}
+            {% if form.gross_weight_kg.errors %}
+                <div class="alert alert-error">
+                    {{ form.gross_weight_kg.errors }}
+                </div>
+            {% endif %}
+        </div>
+
+        <div class="form-group">
+            <label>Notes (optional)</label>
+            {{ form.notes }}
+        </div>
+
+        <div style="display:flex; gap:12px; margin-top:8px;">
+            <button type="submit" class="btn btn-green">
+                Save Gross Weight →
+            </button>
+            <a href="{% url 'clerk_dashboard' %}"
+               class="btn btn-gray">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}

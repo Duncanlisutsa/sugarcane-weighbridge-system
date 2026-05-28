@@ -1,0 +1,115 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Receipt {{ transaction.receipt_number }}{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width:600px; margin:0 auto;"
+     id="receipt-area">
+
+    <div style="text-align:center; margin-bottom:20px;
+                border-bottom:2px solid #C8E6C9; padding-bottom:16px;">
+        <div style="font-size:32px;">🌿</div>
+        <h2 style="border:none; margin-bottom:4px;">
+            Sugarcane Weighbridge System
+        </h2>
+        <p style="color:#757575; font-size:13px;">
+            Official Weighing Receipt
+        </p>
+    </div>
+
+    <div style="display:flex; justify-content:space-between;
+                margin-bottom:20px;">
+        <div>
+            <div style="font-size:12px; color:#999;">Receipt Number</div>
+            <div style="font-size:18px; font-weight:bold; color:#1B5E20;">
+                {{ transaction.receipt_number }}
+            </div>
+        </div>
+        <div style="text-align:right;">
+            <div style="font-size:12px; color:#999;">Date</div>
+            <div style="font-size:14px;">
+                {{ transaction.gross_time|date:"d M Y H:i" }}
+            </div>
+        </div>
+    </div>
+
+    <table style="margin-bottom:20px;">
+        <tr>
+            <td style="font-weight:bold; color:#555; width:40%;">
+                Farmer
+            </td>
+            <td>{{ transaction.farmer.full_name }}</td>
+        </tr>
+        <tr>
+            <td style="font-weight:bold; color:#555;">Farmer Code</td>
+            <td>{{ transaction.farmer.farmer_code }}</td>
+        </tr>
+        <tr>
+            <td style="font-weight:bold; color:#555;">Vehicle</td>
+            <td>{{ transaction.vehicle.plate_number }}</td>
+        </tr>
+        <tr>
+            <td style="font-weight:bold; color:#555;">Zone</td>
+            <td>{{ transaction.farmer.zone }}</td>
+        </tr>
+        <tr>
+            <td style="font-weight:bold; color:#555;">Clerk</td>
+            <td>{{ transaction.clerk.full_name }}</td>
+        </tr>
+    </table>
+
+    <!-- Weight summary box -->
+    <div style="background:#F1F8E9; border-radius:8px;
+                padding:16px; margin-bottom:20px;">
+        <table style="width:100%;">
+            <tr>
+                <td style="padding:6px 0; color:#555;">
+                    Gross Weight
+                </td>
+                <td style="text-align:right;">
+                    {{ transaction.gross_weight_kg }} kg
+                </td>
+            </tr>
+            <tr>
+                <td style="padding:6px 0; color:#555;">
+                    Tare Weight
+                </td>
+                <td style="text-align:right;">
+                    {{ transaction.tare_weight_kg }} kg
+                </td>
+            </tr>
+            <tr style="border-top:2px solid #C8E6C9;">
+                <td style="padding:10px 0 0;
+                           font-weight:bold; font-size:16px;">
+                    Net Weight
+                </td>
+                <td style="text-align:right; font-weight:bold;
+                           font-size:20px; color:#1B5E20; padding-top:10px;">
+                    {{ transaction.net_weight_kg }} kg
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    {% if transaction.notes %}
+    <div style="margin-bottom:20px;">
+        <strong>Notes:</strong> {{ transaction.notes }}
+    </div>
+    {% endif %}
+
+    <div style="text-align:center; font-size:11px;
+                color:#999; border-top:1px solid #eee; padding-top:12px;">
+        This receipt was generated automatically by the
+        Digital Sugarcane Weighbridge System.<br>
+        Any alterations render this receipt invalid.
+    </div>
+</div>
+
+<div style="display:flex; gap:12px; margin-top:16px;
+            max-width:600px; margin-left:auto; margin-right:auto;">
+    <button onclick="window.print()"
+            class="btn btn-green">🖨 Print Receipt</button>
+    <a href="{% url 'clerk_dashboard' %}"
+       class="btn btn-gray">← Back to Dashboard</a>
+</div>
+
+{% endblock %}
