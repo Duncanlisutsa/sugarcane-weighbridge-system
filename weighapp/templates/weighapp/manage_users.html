@@ -19,7 +19,7 @@
                 <th>Role</th>
                 <th>Email</th>
                 <th>Status</th>
-                <th>Action</th>
+                <th>Actions</th>
             </tr>
         </thead>
         <tbody>
@@ -29,9 +29,9 @@
                 <td>{{ u.username }}</td>
                 <td>
                     <span class="badge
-                        {% if u.role == 'manager' %}badge-blue
-                        {% elif u.role == 'clerk' %}badge-green
-                        {% else %}badge-yellow{% endif %}">
+                        {% if u.role == 'manager' %}badge-green
+                        {% elif u.role == 'clerk' %}badge-yellow
+                        {% else %}badge-red{% endif %}">
                         {{ u.role|title }}
                     </span>
                 </td>
@@ -43,11 +43,16 @@
                         {% if u.is_active %}Active{% else %}Inactive{% endif %}
                     </span>
                 </td>
-                <td>
+                <td style="display:flex; gap:6px; flex-wrap:wrap;">
+                    <a href="{% url 'reset_password' u.pk %}"
+                       class="btn btn-blue"
+                       style="padding:4px 12px; font-size:12px;">
+                        🔑 Reset Password
+                    </a>
                     <a href="{% url 'toggle_user' u.pk %}"
                        class="btn {% if u.is_active %}btn-gray{% else %}btn-green{% endif %}"
                        style="padding:4px 12px; font-size:12px;"
-                       onclick="return confirm('Are you sure?')">
+                       onclick="return confirm('Are you sure you want to {% if u.is_active %}deactivate{% else %}activate{% endif %} {{ u.full_name }}?')">
                         {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
                     </a>
                 </td>
@@ -55,6 +60,13 @@
             {% endfor %}
         </tbody>
     </table>
+
+    {% if not users %}
+    <div class="alert alert-info" style="margin-top:16px;">
+        No users found. Click <strong>Add New User</strong> to create one.
+    </div>
+    {% endif %}
+
 </div>
 
 {% endblock %}

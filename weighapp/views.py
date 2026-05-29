@@ -528,3 +528,44 @@ def toggle_user(request, pk):
     status = "activated" if user.is_active else "deactivated"
     messages.success(request, f"User {user.full_name} {status}.")
     return redirect('manage_users')
+
+# ─────────────────────────────────────────
+# RESET USER PASSWORD — Admin only
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def reset_password(request, pk):
+    if request.user.role != 'admin':
+        return redirect('clerk_dashboard')
+
+    user = User.objects.get(pk=pk)
+
+    if request.method == 'POST':
+        new_password  = request.POST.get('new_password')
+        confirm       = request.POST.get('confirm_password')
+
+        if new_password != confirm:
+            messages.error(request, "Passwords do not match.")
+            return redirect('reset_password', pk=pk)
+
+        if len(new_password) < 8:
+            messages.error(request, "Password must be at least 8 characters.")
+            return redirect('reset_password', pk=pk)
+
+        user.set_password(new_password)
+        user.save()
+
+        AuditLog.objects.create(
+            user       = request.user,
+            action     = 'login',
+            table_name = 'user',
+            record_id  = user.id,
+            new_value  = f"Password reset for {user.full_name}",
+            ip_address = get_client_ip(request)
+        )
+        messages.success(
+            request,
+            f"Password for {user.full_name} has been reset successfully."
+        )
+        return redirect('manage_users')
+
+    return render(request, 'weighapp/reset_password.html', {'target_user': user})

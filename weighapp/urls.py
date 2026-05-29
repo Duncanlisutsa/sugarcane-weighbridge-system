@@ -27,5 +27,7 @@ urlpatterns = [
     path('users/',            views.manage_users, name='manage_users'),
     path('users/add/',        views.add_user,     name='add_user'),
     path('users/<int:pk>/toggle/', views.toggle_user, name='toggle_user'),
+    
+    path('users/<int:pk>/reset-password/', views.reset_password, name='reset_password'),
     ]
 
