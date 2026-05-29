@@ -1,0 +1,60 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>👥 User Management</h2>
+
+    <div style="margin-bottom:16px;">
+        <a href="{% url 'add_user' %}" class="btn btn-green">
+            + Add New User
+        </a>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Full Name</th>
+                <th>Username</th>
+                <th>Role</th>
+                <th>Email</th>
+                <th>Status</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for u in users %}
+            <tr>
+                <td>{{ u.full_name }}</td>
+                <td>{{ u.username }}</td>
+                <td>
+                    <span class="badge
+                        {% if u.role == 'manager' %}badge-blue
+                        {% elif u.role == 'clerk' %}badge-green
+                        {% else %}badge-yellow{% endif %}">
+                        {{ u.role|title }}
+                    </span>
+                </td>
+                <td>{{ u.email }}</td>
+                <td>
+                    <span class="badge
+                        {% if u.is_active %}badge-green
+                        {% else %}badge-red{% endif %}">
+                        {% if u.is_active %}Active{% else %}Inactive{% endif %}
+                    </span>
+                </td>
+                <td>
+                    <a href="{% url 'toggle_user' u.pk %}"
+                       class="btn {% if u.is_active %}btn-gray{% else %}btn-green{% endif %}"
+                       style="padding:4px 12px; font-size:12px;"
+                       onclick="return confirm('Are you sure?')">
+                        {% if u.is_active %}Deactivate{% else %}Activate{% endif %}
+                    </a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+{% endblock %}

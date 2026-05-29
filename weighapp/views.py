@@ -466,3 +466,65 @@ def export_report_pdf(request):
     story.append(table)
     doc.build(story)
     return response
+
+
+# ─────────────────────────────────────────
+# USER MANAGEMENT — Admin only
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def manage_users(request):
+    if request.user.role != 'admin':
+        return redirect('clerk_dashboard')
+
+    users = User.objects.filter(is_superuser=False).order_by('role', 'full_name')
+    return render(request, 'weighapp/manage_users.html', {'users': users})
+
+
+@login_required(login_url='login')
+def add_user(request):
+    if request.user.role != 'admin':
+        return redirect('clerk_dashboard')
+
+    if request.method == 'POST':
+        username  = request.POST.get('username')
+        full_name = request.POST.get('full_name')
+        email     = request.POST.get('email')
+        role      = request.POST.get('role')
+        password  = request.POST.get('password')
+
+        if User.objects.filter(username=username).exists():
+            messages.error(request, f"Username '{username}' already exists.")
+            return redirect('add_user')
+
+        user = User.objects.create_user(
+            username  = username,
+            password  = password,
+            email     = email,
+            full_name = full_name,
+            role      = role,
+        )
+        AuditLog.objects.create(
+            user       = request.user,
+            action     = 'farmer_created',
+            table_name = 'user',
+            record_id  = user.id,
+            new_value  = f"{full_name} ({role})",
+            ip_address = get_client_ip(request)
+        )
+        messages.success(request, f"User {full_name} created successfully.")
+        return redirect('manage_users')
+
+    return render(request, 'weighapp/add_user.html', {})
+
+
+@login_required(login_url='login')
+def toggle_user(request, pk):
+    if request.user.role != 'admin':
+        return redirect('clerk_dashboard')
+
+    user = User.objects.get(pk=pk)
+    user.is_active = not user.is_active
+    user.save()
+    status = "activated" if user.is_active else "deactivated"
+    messages.success(request, f"User {user.full_name} {status}.")
+    return redirect('manage_users')

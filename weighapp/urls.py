@@ -22,5 +22,10 @@ urlpatterns = [
     #Reports
     path('reports/', views.reports, name='reports'),
     path('reports/export/', views.export_report_pdf, name='export_report_pdf'),
-]
+    
+    # User management
+    path('users/',            views.manage_users, name='manage_users'),
+    path('users/add/',        views.add_user,     name='add_user'),
+    path('users/<int:pk>/toggle/', views.toggle_user, name='toggle_user'),
+    ]
 
