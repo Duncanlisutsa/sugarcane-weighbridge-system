@@ -1,0 +1,55 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}System Users{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>👤 System Clerks</h2>
+
+    <div class="summary-cards" style="margin-bottom:20px;">
+        <div class="summary-card">
+            <div class="number">{{ total }}</div>
+            <div class="label">Total Clerks</div>
+        </div>
+    </div>
+
+    {% if clerks %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Full Name</th>
+                    <th>Username</th>
+                    <th>Email</th>
+                    <th>Status</th>
+                    <th>Date Added</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in clerks %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td>{{ c.full_name }}</td>
+                    <td>{{ c.username }}</td>
+                    <td>{{ c.email|default:"—" }}</td>
+                    <td>
+                        <span class="badge
+                            {% if c.is_active %}badge-green
+                            {% else %}badge-red{% endif %}">
+                            {% if c.is_active %}Active{% else %}Inactive{% endif %}
+                        </span>
+                    </td>
+                    <td>{{ c.date_joined|date:"d M Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No clerks found in the system.
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

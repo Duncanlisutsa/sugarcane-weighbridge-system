@@ -1,0 +1,57 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Registered Vehicles{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>🚛 Registered Vehicles</h2>
+
+    <div class="summary-cards" style="margin-bottom:20px;">
+        <div class="summary-card">
+            <div class="number">{{ total }}</div>
+            <div class="label">Total Vehicles</div>
+        </div>
+    </div>
+
+    {% if vehicles %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Plate Number</th>
+                    <th>Make & Model</th>
+                    <th>Linked Farmer</th>
+                    <th>Farmer Code</th>
+                    <th>Zone</th>
+                    <th>Registered By</th>
+                    <th>Date Registered</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for v in vehicles %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ v.plate_number }}</strong></td>
+                    <td>{{ v.make_model }}</td>
+                    <td>{{ v.farmer.full_name|default:"—" }}</td>
+                    <td>{{ v.farmer.farmer_code|default:"—" }}</td>
+                    <td>
+                        <span class="badge badge-green">
+                            {{ v.farmer.zone|default:"—" }}
+                        </span>
+                    </td>
+                    <td>{{ v.registered_by.full_name|default:"—" }}</td>
+                    <td>{{ v.created_at|date:"d M Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No vehicles registered yet.
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

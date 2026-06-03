@@ -194,9 +194,11 @@
         {% endif %}
 
         {% if user.role == 'manager' or user.role == 'admin' %}
-        <!-- Manager links -->
         <a href="{% url 'manager_dashboard' %}">🏠 Dashboard</a>
         <a href="{% url 'reports' %}">📊 Reports</a>
+        <a href="{% url 'view_farmers' %}">👨‍🌾 Farmers</a>
+        <a href="{% url 'view_vehicles' %}">🚛 Vehicles</a>
+        <a href="{% url 'view_clerks' %}">👤 Clerks</a>
         {% endif %}
 
         {% if user.role == 'admin' %}

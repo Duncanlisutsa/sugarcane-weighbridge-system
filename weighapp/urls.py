@@ -29,5 +29,10 @@ urlpatterns = [
     path('users/<int:pk>/toggle/', views.toggle_user, name='toggle_user'),
     
     path('users/<int:pk>/reset-password/', views.reset_password, name='reset_password'),
+    
+    # Manager read-only views
+    path('farmers/',  views.view_farmers,  name='view_farmers'),
+    path('vehicles/', views.view_vehicles, name='view_vehicles'),
+    path('clerks/',   views.view_clerks,   name='view_clerks'),
     ]
 

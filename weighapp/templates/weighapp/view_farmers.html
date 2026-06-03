@@ -1,0 +1,57 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Registered Farmers{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>👨‍🌾 Registered Farmers</h2>
+
+    <div class="summary-cards" style="margin-bottom:20px;">
+        <div class="summary-card">
+            <div class="number">{{ total }}</div>
+            <div class="label">Total Farmers</div>
+        </div>
+    </div>
+
+    {% if farmers %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Farmer Code</th>
+                    <th>Full Name</th>
+                    <th>ID Number</th>
+                    <th>Phone</th>
+                    <th>Zone</th>
+                    <th>Registered By</th>
+                    <th>Date Registered</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for f in farmers %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ f.farmer_code }}</strong></td>
+                    <td>{{ f.full_name }}</td>
+                    <td>{{ f.id_number }}</td>
+                    <td>{{ f.phone }}</td>
+                    <td>
+                        <span class="badge badge-green">
+                            {{ f.zone }}
+                        </span>
+                    </td>
+                    <td>{{ f.registered_by.full_name|default:"—" }}</td>
+                    <td>{{ f.created_at|date:"d M Y" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No farmers registered yet.
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

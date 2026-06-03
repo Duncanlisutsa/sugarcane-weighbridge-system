@@ -569,3 +569,53 @@ def reset_password(request, pk):
         return redirect('manage_users')
 
     return render(request, 'weighapp/reset_password.html', {'target_user': user})
+
+# ─────────────────────────────────────────
+# MANAGER — VIEW FARMERS
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def view_farmers(request):
+    if request.user.role not in ['manager', 'admin']:
+        return redirect('clerk_dashboard')
+
+    farmers = Farmer.objects.all().order_by('zone', 'full_name')
+    context = {
+        'farmers': farmers,
+        'total': farmers.count(),
+    }
+    return render(request, 'weighapp/view_farmers.html', context)
+
+
+# ─────────────────────────────────────────
+# MANAGER — VIEW VEHICLES
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def view_vehicles(request):
+    if request.user.role not in ['manager', 'admin']:
+        return redirect('clerk_dashboard')
+
+    vehicles = Vehicle.objects.all().order_by('plate_number')
+    context = {
+        'vehicles': vehicles,
+        'total': vehicles.count(),
+    }
+    return render(request, 'weighapp/view_vehicles.html', context)
+
+
+# ─────────────────────────────────────────
+# MANAGER — VIEW CLERKS
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def view_clerks(request):
+    if request.user.role not in ['manager', 'admin']:
+        return redirect('clerk_dashboard')
+
+    clerks = User.objects.filter(
+        role='clerk',
+        is_superuser=False
+    ).order_by('full_name')
+    context = {
+        'clerks': clerks,
+        'total': clerks.count(),
+    }
+    return render(request, 'weighapp/view_clerks.html', context)
