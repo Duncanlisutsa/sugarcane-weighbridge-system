@@ -1,4 +1,5 @@
 from django.shortcuts import render, redirect
+from .sms import send_gross_weight_sms, send_completion_sms
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -156,12 +157,24 @@ def weighing_step1(request):
                 new_value  = f"Gross: {transaction.gross_weight_kg}kg",
                 ip_address = get_client_ip(request)
             )
-            messages.success(
-                request,
-                f"Gross weight recorded. "
-                f"Receipt No: {transaction.receipt_number}. "
-                f"Now enter the tare weight after offloading."
-            )
+            # Send SMS to farmer
+            sms_sent = send_gross_weight_sms(transaction)
+
+            if sms_sent:
+                messages.success(
+                    request,
+                    f"Gross weight recorded. "
+                    f"Receipt No: {transaction.receipt_number}. "
+                    f"SMS sent to {transaction.farmer.phone}. "
+                    f"Now enter the tare weight after offloading."
+                )
+            else:
+                messages.success(
+                    request,
+                    f"Gross weight recorded. "
+                    f"Receipt No: {transaction.receipt_number}. "
+                    f"Now enter the tare weight after offloading."
+                )
             return redirect('weighing_step2', pk=transaction.pk)
 
     return render(request, 'weighapp/weighing_step1.html', {'form': form})
@@ -198,10 +211,14 @@ def weighing_step2(request, pk):
                              f"Net: {transaction.net_weight_kg}kg",
                 ip_address = get_client_ip(request)
             )
+            # Send completion SMS to farmer
+            send_completion_sms(transaction)
+
             messages.success(
                 request,
                 f"Transaction complete! "
-                f"Net weight: {transaction.net_weight_kg} kg"
+                f"Net weight: {transaction.net_weight_kg} kg. "
+                f"SMS sent to farmer."
             )
             return redirect('receipt', pk=transaction.pk)
 

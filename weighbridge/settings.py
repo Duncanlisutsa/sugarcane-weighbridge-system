@@ -122,3 +122,8 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
 
 STATIC_URL = 'static/'
+
+
+# ── Africa's Talking SMS ──
+AFRICASTALKING_USERNAME = 'sandbox'
+AFRICASTALKING_API_KEY  = 'atsk_980ea4dabd15a6d408c6df848131b883b112504e9218341bc5037d67edd8fe6f3af2a4dd'
