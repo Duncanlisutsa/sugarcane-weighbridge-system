@@ -1,3 +1,11 @@
+import ssl
+import urllib3
+
+# Fix SSL compatibility issue with Python 3.14 on Windows
+ssl._create_default_https_context = ssl._create_unverified_context
+urllib3.disable_warnings()
+
+
 import africastalking
 import requests
 import json
