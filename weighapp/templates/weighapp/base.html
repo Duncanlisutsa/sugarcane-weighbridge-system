@@ -6,230 +6,101 @@
     <title>{% block title %}Weighbridge System{% endblock %}</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
-
-        body {
-            font-family: Arial, sans-serif;
-            background: #f0f2f5;
-            color: #333;
-        }
-
-        /* ── Navigation bar ── */
-        .navbar {
-            background: #1B5E20;
-            color: white;
-            padding: 12px 24px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .navbar h1 {
-            font-size: 18px;
-            font-weight: bold;
-        }
-        .navbar a {
-            color: white;
-            text-decoration: none;
-            margin-left: 16px;
-            font-size: 14px;
-        }
-        .navbar a:hover { text-decoration: underline; }
-
-        /* ── Page wrapper ── */
-        .container {
-            max-width: 1100px;
-            margin: 30px auto;
-            padding: 0 20px;
-        }
-
-        /* ── Cards ── */
-        .card {
-            background: white;
-            border-radius: 8px;
-            padding: 28px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            margin-bottom: 24px;
-        }
-
-        .card h2 {
-            color: #1B5E20;
-            margin-bottom: 20px;
-            font-size: 20px;
-            border-bottom: 2px solid #C8E6C9;
-            padding-bottom: 10px;
-        }
-
-        /* ── Forms ── */
-        .form-group {
-            margin-bottom: 16px;
-        }
-        .form-group label {
-            display: block;
-            font-size: 13px;
-            font-weight: bold;
-            margin-bottom: 6px;
-            color: #555;
-        }
-        .form-group input,
-        .form-group select,
-        .form-group textarea {
-            width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ddd;
-            border-radius: 6px;
-            font-size: 14px;
-            transition: border 0.2s;
-        }
-        .form-group input:focus,
-        .form-group select:focus {
-            outline: none;
-            border-color: #1B5E20;
-        }
-
-        /* ── Buttons ── */
-        .btn {
-            padding: 10px 24px;
-            border: none;
-            border-radius: 6px;
-            font-size: 14px;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        .btn-green {
-            background: #1B5E20;
-            color: white;
-        }
+        body { font-family: Arial, sans-serif; background: #f0f2f5; color: #333; min-height: 100vh; display: flex; flex-direction: column; }
+        .navbar { background: #1B5E20; color: white; padding: 0 24px; display: flex; justify-content: space-between; align-items: center; height: 56px; box-shadow: 0 2px 6px rgba(0,0,0,0.2); position: sticky; top: 0; z-index: 100; }
+        .navbar-brand { display: flex; align-items: center; gap: 10px; }
+        .navbar-brand h1 { font-size: 17px; font-weight: bold; }
+        .navbar-right { display: flex; align-items: center; gap: 12px; }
+        .navbar-right .user-info { font-size: 13px; color: #C8E6C9; padding: 4px 10px; border-left: 1px solid #2E7D32; }
+        .navbar-right a.top-link { color: white; text-decoration: none; font-size: 13px; padding: 5px 10px; border-radius: 4px; }
+        .navbar-right a.top-link:hover { background: #2E7D32; }
+        .navbar-right a.btn-logout { background: #C62828; color: white; text-decoration: none; font-size: 13px; padding: 5px 14px; border-radius: 4px; font-weight: bold; }
+        .page-wrapper { display: flex; flex: 1; }
+        .sidebar-left { width: 200px; min-width: 200px; background: #fff; border-right: 1px solid #e0e0e0; padding: 24px 0; display: flex; flex-direction: column; }
+        .sidebar-left .sidebar-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px; padding: 0 18px 10px; }
+        .sidebar-left a { display: flex; align-items: center; gap: 10px; color: #333; text-decoration: none; padding: 11px 18px; font-size: 14px; border-left: 3px solid transparent; transition: all 0.2s; }
+        .sidebar-left a:hover { background: #F1F8E9; color: #1B5E20; border-left-color: #1B5E20; font-weight: bold; }
+        .sidebar-right { width: 180px; min-width: 180px; background: #fff; border-left: 1px solid #e0e0e0; padding: 24px 0; display: flex; flex-direction: column; }
+        .sidebar-right .sidebar-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px; padding: 0 18px 10px; }
+        .sidebar-right a { display: flex; align-items: center; gap: 10px; color: #333; text-decoration: none; padding: 11px 18px; font-size: 14px; border-right: 3px solid transparent; transition: all 0.2s; }
+        .sidebar-right a:hover { background: #F1F8E9; color: #1B5E20; border-right-color: #1B5E20; font-weight: bold; }
+        .main-content { flex: 1; padding: 28px 24px; overflow-y: auto; }
+        .card { background: white; border-radius: 8px; padding: 24px; box-shadow: 0 2px 8px rgba(0,0,0,0.07); margin-bottom: 24px; }
+        .card h2 { color: #1B5E20; margin-bottom: 20px; font-size: 18px; border-bottom: 2px solid #C8E6C9; padding-bottom: 10px; }
+        .form-group { margin-bottom: 16px; }
+        .form-group label { display: block; font-size: 13px; font-weight: bold; margin-bottom: 6px; color: #555; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 6px; font-size: 14px; }
+        .form-group input:focus, .form-group select:focus { outline: none; border-color: #1B5E20; }
+        .btn { padding: 10px 24px; border: none; border-radius: 6px; font-size: 14px; cursor: pointer; font-weight: bold; }
+        .btn-green { background: #1B5E20; color: white; }
         .btn-green:hover { background: #2E7D32; }
-        .btn-gray {
-            background: #757575;
-            color: white;
-        }
-        .btn-blue {
-            background: #1565C0;
-            color: white;
-        }
-
-        /* ── Alerts ── */
-        .alert {
-            padding: 12px 16px;
-            border-radius: 6px;
-            margin-bottom: 16px;
-            font-size: 14px;
-        }
-        .alert-error   { background: #FFEBEE; color: #C62828; border-left: 4px solid #C62828; }
+        .btn-gray { background: #757575; color: white; }
+        .btn-blue { background: #1565C0; color: white; }
+        .alert { padding: 12px 16px; border-radius: 6px; margin-bottom: 16px; font-size: 14px; }
+        .alert-error { background: #FFEBEE; color: #C62828; border-left: 4px solid #C62828; }
         .alert-success { background: #E8F5E9; color: #1B5E20; border-left: 4px solid #1B5E20; }
-        .alert-info    { background: #E3F2FD; color: #1565C0; border-left: 4px solid #1565C0; }
-
-        /* ── Tables ── */
-        table {
-            width: 100%;
-            border-collapse: collapse;
-            font-size: 14px;
-        }
-        th {
-            background: #1B5E20;
-            color: white;
-            padding: 10px 14px;
-            text-align: left;
-        }
-        td {
-            padding: 10px 14px;
-            border-bottom: 1px solid #eee;
-        }
+        .alert-info { background: #E3F2FD; color: #1565C0; border-left: 4px solid #1565C0; }
+        table { width: 100%; border-collapse: collapse; font-size: 14px; }
+        th { background: #1B5E20; color: white; padding: 10px 14px; text-align: left; }
+        td { padding: 10px 14px; border-bottom: 1px solid #eee; }
         tr:hover { background: #F1F8E9; }
-
-        /* ── Summary cards (dashboard) ── */
-        .summary-cards {
-            display: flex;
-            gap: 20px;
-            margin-bottom: 24px;
-            flex-wrap: wrap;
-        }
-        .summary-card {
-            flex: 1;
-            min-width: 180px;
-            background: white;
-            border-radius: 8px;
-            padding: 20px;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-            border-top: 4px solid #1B5E20;
-            text-align: center;
-        }
-        .summary-card .number {
-            font-size: 32px;
-            font-weight: bold;
-            color: #1B5E20;
-        }
-        .summary-card .label {
-            font-size: 13px;
-            color: #757575;
-            margin-top: 4px;
-        }
-
-        /* ── Status badges ── */
-        .badge {
-            padding: 3px 10px;
-            border-radius: 20px;
-            font-size: 12px;
-            font-weight: bold;
-        }
-        .badge-green  { background: #C8E6C9; color: #1B5E20; }
+        .summary-cards { display: flex; gap: 20px; margin-bottom: 24px; flex-wrap: wrap; }
+        .summary-card { flex: 1; min-width: 160px; background: white; border-radius: 8px; padding: 20px; box-shadow: 0 2px 8px rgba(0,0,0,0.08); border-top: 4px solid #1B5E20; text-align: center; }
+        .summary-card .number { font-size: 30px; font-weight: bold; color: #1B5E20; }
+        .summary-card .label { font-size: 13px; color: #757575; margin-top: 4px; }
+        .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
+        .badge-green { background: #C8E6C9; color: #1B5E20; }
         .badge-yellow { background: #FFF9C4; color: #F57F17; }
-        .badge-red    { background: #FFCDD2; color: #C62828; }
+        .badge-red { background: #FFCDD2; color: #C62828; }
     </style>
 </head>
 <body>
-
 {% if user.is_authenticated %}
 <nav class="navbar">
-    <h1>🌿 Sugarcane Weighbridge System</h1>
-
-    <div style="display:flex; align-items:center; gap:8px; flex-wrap:wrap;">
-
+    <div class="navbar-brand">
+        <span style="font-size:22px;">🌿</span>
+        <h1>Sugarcane Weighbridge System</h1>
+    </div>
+    <div class="navbar-right">
+        {% if user.role == 'admin' %}
+        <a href="{% url 'manage_users' %}" class="top-link">👥 Manage Users</a>
+        <a href="/admin/" class="top-link">⚙️ Admin Panel</a>
+        {% endif %}
+        <span class="user-info">{{ user.full_name }} ({{ user.role|title }})</span>
+        <a href="{% url 'logout' %}" class="btn-logout">Logout</a>
+    </div>
+</nav>
+<div class="page-wrapper">
+    <div class="sidebar-left">
+        <div class="sidebar-title">Actions</div>
         {% if user.role == 'clerk' or user.role == 'admin' %}
-        <!-- Clerk links -->
         <a href="{% url 'clerk_dashboard' %}">🏠 Dashboard</a>
         <a href="{% url 'weighing_step1' %}">⚖️ New Weighing</a>
         <a href="{% url 'register_farmer' %}">👨‍🌾 Register Farmer</a>
         <a href="{% url 'register_vehicle' %}">🚛 Register Vehicle</a>
         {% endif %}
-
         {% if user.role == 'manager' or user.role == 'admin' %}
         <a href="{% url 'manager_dashboard' %}">🏠 Dashboard</a>
+        {% endif %}
+    </div>
+    <div class="main-content">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="alert alert-{{ message.tags }}">{{ message }}</div>
+            {% endfor %}
+        {% endif %}
+        {% block content %}{% endblock %}
+    </div>
+    {% if user.role == 'manager' or user.role == 'admin' %}
+    <div class="sidebar-right">
+        <div class="sidebar-title">Records</div>
         <a href="{% url 'reports' %}">📊 Reports</a>
         <a href="{% url 'view_farmers' %}">👨‍🌾 Farmers</a>
         <a href="{% url 'view_vehicles' %}">🚛 Vehicles</a>
         <a href="{% url 'view_clerks' %}">👤 Clerks</a>
-        {% endif %}
-
-        {% if user.role == 'admin' %}
-        <a href="{% url 'manage_users' %}">👥 Manage Users</a>
-        <a href="/admin/">⚙️ Admin Panel</a>
-        {% endif %}
-        
-        <!-- Divider -->
-        <span style="color:#81C784; margin:0 4px;">|</span>
-
-        <span style="font-size:13px; color:#C8E6C9;">
-            {{ user.full_name }} ({{ user.role|title }})
-        </span>
-        <a href="{% url 'logout' %}"
-           style="background:#C62828; padding:4px 12px;
-                  border-radius:4px; font-size:13px;">
-            Logout
-        </a>
     </div>
-</nav>
-{% endif %}
-
-<div class="container">
-    {% if messages %}
-        {% for message in messages %}
-            <div class="alert alert-{{ message.tags }}">{{ message }}</div>
-        {% endfor %}
     {% endif %}
-
-    {% block content %}{% endblock %}
 </div>
-
+{% endif %}
 </body>
 </html>

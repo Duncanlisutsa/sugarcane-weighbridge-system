@@ -1,26 +1,25 @@
 {% extends 'weighapp/base.html' %}
 {% block title %}Manager Dashboard{% endblock %}
 {% block content %}
-<div class="card">
-    <h2>Manager Dashboard</h2>
-    <div class="summary-cards">
-        <div class="summary-card">
-            <div class="number">{{ today_count }}</div>
-            <div class="label">Transactions Today</div>
-        </div>
-        <div class="summary-card">
-            <div class="number">{{ today_weight|floatformat:0 }} kg</div>
-            <div class="label">Total Net Weight Today</div>
-        </div>
-        <div class="summary-card">
-            <div class="number">{{ total_farmers }}</div>
-            <div class="label">Registered Farmers</div>
-        </div>
+
+<div class="summary-cards">
+    <div class="summary-card">
+        <div class="number">{{ today_count }}</div>
+        <div class="label">Transactions Today</div>
+    </div>
+    <div class="summary-card">
+        <div class="number">{{ today_weight|floatformat:0 }} kg</div>
+        <div class="label">Total Net Weight Today</div>
+    </div>
+    <div class="summary-card">
+        <div class="number">{{ total_farmers }}</div>
+        <div class="label">Registered Farmers</div>
     </div>
 </div>
 
 <div class="card">
     <h2>Recent Transactions</h2>
+    {% if recent_transactions %}
     <table>
         <thead>
             <tr>
@@ -36,7 +35,7 @@
         <tbody>
             {% for t in recent_transactions %}
             <tr>
-                <td>{{ t.receipt_number }}</td>
+                <td><strong>{{ t.receipt_number }}</strong></td>
                 <td>{{ t.farmer.full_name }}</td>
                 <td>{{ t.gross_weight_kg }}</td>
                 <td>{{ t.tare_weight_kg|default:"—" }}</td>
@@ -54,5 +53,9 @@
             {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <p style="color:#aaa; text-align:center; padding:30px 0;">No transactions recorded yet.</p>
+    {% endif %}
 </div>
+
 {% endblock %}

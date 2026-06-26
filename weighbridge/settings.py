@@ -79,7 +79,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
         'NAME': 'weighbridge',
-        'USER': 'root',        
+        'USER': 'weighbridge',        
         'PASSWORD': 'd35429885.',       
         'HOST': 'localhost',
         'PORT': '3306',
