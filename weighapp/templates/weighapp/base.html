@@ -101,6 +101,15 @@
     </div>
     {% endif %}
 </div>
+{% else %}
+<div class="main-content">
+{% if messages %}
+{% for message in messages %}
+<div class="alert alert-{{ message.tags }}">{{ message }}</div>
+{% endfor %}
+{% endif %}
+{% block unauthenticated_content %}{% endblock %}
+</div>
 {% endif %}
 </body>
 </html>
