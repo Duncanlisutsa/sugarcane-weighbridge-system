@@ -7,7 +7,7 @@
     <form method="POST">
         {% csrf_token %}
         {% for field in form %}
-        <div class="form-group">
+        <div class="form-group" id="group_{{ field.name }}">
             <label>{{ field.label }}</label>
             {{ field }}
             {% if field.errors %}
@@ -24,5 +24,23 @@
         </div>
     </form>
 </div>
+
+<script>
+    (function () {
+        var makeModelSelect = document.getElementById('id_make_model');
+        var otherGroup = document.getElementById('group_make_model_other');
+
+        function toggleOtherField() {
+            if (makeModelSelect.value === 'Other') {
+                otherGroup.style.display = '';
+            } else {
+                otherGroup.style.display = 'none';
+            }
+        }
+
+        makeModelSelect.addEventListener('change', toggleOtherField);
+        toggleOtherField();
+    })();
+</script>
 
 {% endblock %}

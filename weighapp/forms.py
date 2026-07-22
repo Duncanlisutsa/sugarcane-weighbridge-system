@@ -100,7 +100,34 @@ class FarmerForm(forms.ModelForm):
 # ─────────────────────────────────────────
 # VEHICLE REGISTRATION FORM
 # ─────────────────────────────────────────
+MAKE_MODEL_CHOICES = [
+    ('', '-- Select Make/Model --'),
+    ('ISUZU', 'ISUZU'),
+    ('MAHINDRA', 'MAHINDRA'),
+    ('NEW HOLLAND', 'NEW HOLLAND'),
+    ('JOHN DEERE', 'JOHN DEERE'),
+    ('MASSEY FERGUSSON', 'MASSEY FERGUSSON'),
+    ('Other', 'Other (type below)'),
+]
+
+
 class VehicleForm(forms.ModelForm):
+    field_order = ['plate_number', 'make_model', 'make_model_other', 'farmer']
+
+    make_model = forms.ChoiceField(
+        choices=MAKE_MODEL_CHOICES,
+        widget=forms.Select(attrs={'id': 'id_make_model'})
+    )
+
+    make_model_other = forms.CharField(
+        required=False,
+        label='Make/Model (if Other)',
+        widget=forms.TextInput(attrs={
+            'id':          'id_make_model_other',
+            'placeholder': 'Enter make/model'
+        })
+    )
+
     class Meta:
         model  = Vehicle
         fields = ['plate_number', 'make_model', 'farmer']
@@ -108,7 +135,27 @@ class VehicleForm(forms.ModelForm):
             'plate_number': forms.TextInput(attrs={
                 'placeholder': 'e.g. KCA 123A'
             }),
-            'make_model': forms.TextInput(attrs={
-                'placeholder': 'e.g. Isuzu FRR'
-            }),
         }
+
+    def clean(self):
+        cleaned_data = super().clean()
+        make_model = cleaned_data.get('make_model')
+        other = cleaned_data.get('make_model_other')
+
+        if make_model == 'Other':
+            if not other:
+                self.add_error(
+                    'make_model_other',
+                    'Please specify the make/model.'
+                )
+            else:
+                cleaned_data['make_model'] = other
+
+        return cleaned_data
+
+    def save(self, commit=True):
+        instance = super().save(commit=False)
+        instance.make_model = self.cleaned_data.get('make_model')
+        if commit:
+            instance.save()
+        return instance
