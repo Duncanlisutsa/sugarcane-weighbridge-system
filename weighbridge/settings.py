@@ -127,3 +127,19 @@ STATIC_URL = 'static/'
 # ── Africa's Talking SMS ──
 AFRICASTALKING_USERNAME = 'sandbox'
 AFRICASTALKING_API_KEY  = 'atsk_980ea4dabd15a6d408c6df848131b883b112504e9218341bc5037d67edd8fe6f3af2a4dd'
+
+# ─────────────────────────────────────────
+# EMAIL (Gmail SMTP shown as an example)
+# Replace with your real sending account, or ideally use an app password.
+# NOTE: this is hardcoded here to match the existing settings.py style —
+# same as AFRICASTALKING_API_KEY above, this should really move to
+# environment variables since this file is in a public repo.
+# ─────────────────────────────────────────
+EMAIL_BACKEND      = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST         = 'smtp.gmail.com'
+EMAIL_PORT         = 587
+EMAIL_USE_TLS      = True
+EMAIL_HOST_USER    = 'duncanlisutsa@gmail.com'
+EMAIL_HOST_PASSWORD = 'fgws jfth basf taah'
+DEFAULT_FROM_EMAIL = 'Weighbridge System <duncanlisutsa@gmail.com>'
+EMAIL_TIMEOUT      = 10  # seconds

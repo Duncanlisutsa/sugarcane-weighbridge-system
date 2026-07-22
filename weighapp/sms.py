@@ -1,5 +1,6 @@
 import ssl
 import urllib3
+import threading
 
 # Fix SSL compatibility issue with Python 3.14 on Windows
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -101,3 +102,29 @@ def send_completion_sms(transaction):
     )
 
     return send_sms(phone, message)
+
+
+def send_gross_weight_sms_async(transaction):
+    """
+    Fire-and-forget version: runs the (slow, network-dependent) SMS send
+    on a background thread so the request/response cycle doesn't wait
+    on it. Use this from views instead of calling send_gross_weight_sms
+    directly.
+    """
+    threading.Thread(
+        target=send_gross_weight_sms,
+        args=(transaction,),
+        daemon=True
+    ).start()
+
+
+def send_completion_sms_async(transaction):
+    """
+    Fire-and-forget version of send_completion_sms — see
+    send_gross_weight_sms_async for why.
+    """
+    threading.Thread(
+        target=send_completion_sms,
+        args=(transaction,),
+        daemon=True
+    ).start()

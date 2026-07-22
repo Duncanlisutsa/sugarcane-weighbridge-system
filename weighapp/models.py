@@ -44,6 +44,7 @@ class Farmer(models.Model):
     full_name   = models.CharField(max_length=150)
     id_number   = models.CharField(max_length=20, unique=True)
     phone       = models.CharField(max_length=15)
+    email       = models.EmailField(blank=True)
     zone        = models.CharField(max_length=50)
 
     registered_by = models.ForeignKey(
@@ -67,7 +68,6 @@ class Farmer(models.Model):
 
     def __str__(self):
         return f"{self.farmer_code} - {self.full_name}"
-
 
 # ─────────────────────────────────────────
 # TABLE 3: VEHICLES

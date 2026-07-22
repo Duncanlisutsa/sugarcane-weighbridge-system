@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect
-from .sms import send_gross_weight_sms, send_completion_sms
+from .sms import send_gross_weight_sms_async, send_completion_sms_async
+from .email_utils import send_gross_weight_email_async, send_completion_email_async
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -157,26 +158,26 @@ def weighing_step1(request):
                 new_value  = f"Gross: {transaction.gross_weight_kg}kg",
                 ip_address = get_client_ip(request)
             )
-            # Send SMS to farmer
-            sms_sent = send_gross_weight_sms(transaction)
+            # Send SMS to farmer in the background — network calls can
+            # be slow, so we don't block the redirect on it
+            send_gross_weight_sms_async(transaction)
+            # Send email to farmer in the background (only if they have
+            # one on file) — SMTP can be slow too
+            if transaction.farmer.email:
+                send_gross_weight_email_async(transaction)
 
-            if sms_sent:
-                messages.success(
-                    request,
-                    f"Gross weight recorded. "
-                    f"Receipt No: {transaction.receipt_number}. "
-                    f"SMS sent to {transaction.farmer.phone}. "
-                    f"Now enter the tare weight after offloading."
-                )
-            else:
-                messages.success(
-                    request,
-                    f"Gross weight recorded. "
-                    f"Receipt No: {transaction.receipt_number}. "
-                    f"Now enter the tare weight after offloading."
-                )
+            notice_parts = [
+                f"Gross weight recorded.",
+                f"Receipt No: {transaction.receipt_number}.",
+                f"SMS notification queued for {transaction.farmer.phone}.",
+            ]
+            if transaction.farmer.email:
+                notice_parts.append(f"Email notification queued for {transaction.farmer.email}.")
+            notice_parts.append("Now enter the tare weight after offloading.")
+
+            messages.success(request, " ".join(notice_parts))
             return redirect('weighing_step2', pk=transaction.pk)
-
+                       
     return render(request, 'weighapp/weighing_step1.html', {'form': form})
 
 
@@ -211,8 +212,12 @@ def weighing_step2(request, pk):
                              f"Net: {transaction.net_weight_kg}kg",
                 ip_address = get_client_ip(request)
             )
-            # Send completion SMS to farmer
-            send_completion_sms(transaction)
+            # Send completion SMS to farmer in the background
+            send_completion_sms_async(transaction)
+            # Send completion email to farmer in the background
+            # (only if they have one on file)
+            if transaction.farmer.email:
+                send_completion_email_async(transaction)
 
             messages.success(
                 request,

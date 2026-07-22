@@ -80,7 +80,7 @@ class TareWeightForm(forms.Form):
 class FarmerForm(forms.ModelForm):
     class Meta:
         model  = Farmer
-        fields = ['full_name', 'id_number', 'phone', 'zone']
+        fields = ['full_name', 'id_number', 'phone', 'email', 'zone']
         widgets = {
             'full_name': forms.TextInput(attrs={
                 'placeholder': 'Full name'
@@ -90,6 +90,9 @@ class FarmerForm(forms.ModelForm):
             }),
             'phone': forms.TextInput(attrs={
                 'placeholder': '07XXXXXXXX'
+            }),
+            'email': forms.EmailInput(attrs={
+                'placeholder': 'farmer@example.com (optional)'
             }),
             'zone': forms.TextInput(attrs={
                 'placeholder': 'e.g. Zone A'
