@@ -80,11 +80,8 @@ class TareWeightForm(forms.Form):
 class FarmerForm(forms.ModelForm):
     class Meta:
         model  = Farmer
-        fields = ['farmer_code', 'full_name', 'id_number', 'phone', 'zone']
+        fields = ['full_name', 'id_number', 'phone', 'zone']
         widgets = {
-            'farmer_code': forms.TextInput(attrs={
-                'placeholder': 'e.g. F004'
-            }),
             'full_name': forms.TextInput(attrs={
                 'placeholder': 'Full name'
             }),

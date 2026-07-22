@@ -38,7 +38,8 @@ class Farmer(models.Model):
 
     farmer_code = models.CharField(
         max_length=20,
-        unique=True
+        unique=True,
+        blank=True
     )
     full_name   = models.CharField(max_length=150)
     id_number   = models.CharField(max_length=20, unique=True)
@@ -53,6 +54,16 @@ class Farmer(models.Model):
     )
 
     created_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not self.farmer_code:
+            last_farmer = Farmer.objects.order_by('-id').first()
+            if last_farmer and last_farmer.farmer_code[2:].isdigit():
+                last_num = int(last_farmer.farmer_code[2:])
+            else:
+                last_num = 0
+            self.farmer_code = f"FC{last_num + 1:03d}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return f"{self.farmer_code} - {self.full_name}"
