@@ -1,4 +1,5 @@
 africastalking==2.0.2
+python-dotenv==1.2.2
 asgiref==3.11.1
 certifi==2026.5.20
 charset-normalizer==3.4.7
