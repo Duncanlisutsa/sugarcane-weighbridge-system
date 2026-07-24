@@ -1,0 +1,92 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Tractor Allocations{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>🚜 Active Tractor Allocations</h2>
+
+    <div class="alert alert-info">
+        🟢 Under 6 hours &nbsp; | &nbsp;
+        🟠 6–12 hours &nbsp; | &nbsp;
+        🔴 Over 12 hours (abnormal — flag for follow-up)
+    </div>
+
+    {% if user.role == 'clerk' or user.role == 'admin' %}
+    <a href="{% url 'allocate_tractor' %}" class="btn btn-green" style="margin-bottom:16px; display:inline-block; text-decoration:none;">
+        + Allocate Tractor
+    </a>
+    {% endif %}
+
+    {% if active_allocations %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Vehicle</th>
+                    <th>Farmer</th>
+                    <th>Allocated At</th>
+                    <th>Time Elapsed</th>
+                    <th>Status</th>
+                    <th>Allocated By</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in active_allocations %}
+                <tr>
+                    <td><strong>{{ a.vehicle.plate_number }}</strong> ({{ a.vehicle.make_model }})</td>
+                    <td>{{ a.farmer.full_name }} ({{ a.farmer.farmer_code }})</td>
+                    <td>{{ a.allocated_at|date:"d M Y, H:i" }}</td>
+                    <td>{{ a.hours_elapsed|floatformat:1 }} hrs</td>
+                    <td>
+                        <span class="badge badge-{{ a.status_color }}">
+                            {{ a.status_color|title }}
+                        </span>
+                    </td>
+                    <td>{{ a.allocated_by.full_name|default:"—" }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No active allocations right now.
+    </div>
+    {% endif %}
+</div>
+
+<div class="card">
+    <h2>Recently Completed Allocations</h2>
+    {% if completed_allocations %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Vehicle</th>
+                    <th>Farmer</th>
+                    <th>Allocated At</th>
+                    <th>Released At</th>
+                    <th>Duration</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for a in completed_allocations %}
+                <tr>
+                    <td><strong>{{ a.vehicle.plate_number }}</strong></td>
+                    <td>{{ a.farmer.full_name }} ({{ a.farmer.farmer_code }})</td>
+                    <td>{{ a.allocated_at|date:"d M Y, H:i" }}</td>
+                    <td>{{ a.released_at|date:"d M Y, H:i" }}</td>
+                    <td>{{ a.hours_elapsed|floatformat:1 }} hrs</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No completed allocations yet.
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

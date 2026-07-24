@@ -51,6 +51,7 @@
         .badge { padding: 3px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; }
         .badge-green { background: #C8E6C9; color: #1B5E20; }
         .badge-yellow { background: #FFF9C4; color: #F57F17; }
+        .badge-orange { background: #FFE0B2; color: #E65100; }
         .badge-red { background: #FFCDD2; color: #C62828; }
     </style>
 </head>
@@ -78,9 +79,12 @@
         <a href="{% url 'weighing_step1' %}">⚖️ New Weighing</a>
         <a href="{% url 'register_farmer' %}">👨‍🌾 Register Farmer</a>
         <a href="{% url 'register_vehicle' %}">🚛 Register Vehicle</a>
+        <a href="{% url 'allocate_tractor' %}">🚜 Allocate Tractor</a>
+        <a href="{% url 'view_allocations' %}">📋 Tractor Status</a>
         {% endif %}
         {% if user.role == 'manager' or user.role == 'admin' %}
         <a href="{% url 'manager_dashboard' %}">🏠 Dashboard</a>
+        <a href="{% url 'view_allocations' %}">📋 Tractor Status</a>
         {% endif %}
     </div>
     <div class="main-content">

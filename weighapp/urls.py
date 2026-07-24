@@ -18,6 +18,11 @@ urlpatterns = [
     # Registration
     path('farmer/register/',  views.register_farmer,  name='register_farmer'),
     path('vehicle/register/', views.register_vehicle, name='register_vehicle'),
+
+    # Tractor allocation
+    path('allocate/',    views.allocate_tractor, name='allocate_tractor'),
+    path('allocations/', views.view_allocations, name='view_allocations'),
+    path('api/farmer-vehicle/<int:farmer_id>/', views.api_farmer_vehicle, name='api_farmer_vehicle'),
     
     #Reports
     path('reports/', views.reports, name='reports'),
@@ -35,4 +40,3 @@ urlpatterns = [
     path('vehicles/', views.view_vehicles, name='view_vehicles'),
     path('clerks/',   views.view_clerks,   name='view_clerks'),
     ]
-

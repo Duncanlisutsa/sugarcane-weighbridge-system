@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Farmer, Vehicle, WeighingTransaction, AuditLog
+from .models import User, Farmer, Vehicle, WeighingTransaction, AuditLog, TractorAllocation
 
 
 # ─────────────────────────────────────────
@@ -34,8 +34,18 @@ class FarmerAdmin(admin.ModelAdmin):
 # ─────────────────────────────────────────
 @admin.register(Vehicle)
 class VehicleAdmin(admin.ModelAdmin):
-    list_display  = ('plate_number', 'make_model', 'farmer', 'created_at')
+    list_display  = ('plate_number', 'make_model', 'created_at')
     search_fields = ('plate_number', 'make_model')
+
+
+# ─────────────────────────────────────────
+# TRACTOR ALLOCATION ADMIN
+# ─────────────────────────────────────────
+@admin.register(TractorAllocation)
+class TractorAllocationAdmin(admin.ModelAdmin):
+    list_display  = ('vehicle', 'farmer', 'status', 'allocated_at', 'released_at')
+    list_filter   = ('status',)
+    search_fields = ('vehicle__plate_number', 'farmer__full_name')
 
 
 # ─────────────────────────────────────────

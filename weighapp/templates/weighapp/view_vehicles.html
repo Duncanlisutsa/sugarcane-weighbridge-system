@@ -20,9 +20,8 @@
                     <th>#</th>
                     <th>Plate Number</th>
                     <th>Make & Model</th>
-                    <th>Linked Farmer</th>
-                    <th>Farmer Code</th>
-                    <th>Zone</th>
+                    <th>Status</th>
+                    <th>Currently Allocated To</th>
                     <th>Registered By</th>
                     <th>Date Registered</th>
                 </tr>
@@ -33,12 +32,23 @@
                     <td>{{ forloop.counter }}</td>
                     <td><strong>{{ v.plate_number }}</strong></td>
                     <td>{{ v.make_model }}</td>
-                    <td>{{ v.farmer.full_name|default:"—" }}</td>
-                    <td>{{ v.farmer.farmer_code|default:"—" }}</td>
                     <td>
-                        <span class="badge badge-green">
-                            {{ v.farmer.zone|default:"—" }}
-                        </span>
+                        {% if v.current_allocation %}
+                            <span class="badge badge-{{ v.current_allocation.status_color }}">
+                                {{ v.current_allocation.status_color|title }}
+                                ({{ v.current_allocation.hours_elapsed|floatformat:1 }}h)
+                            </span>
+                        {% else %}
+                            <span class="badge badge-green">Available</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        {% if v.current_allocation %}
+                            {{ v.current_allocation.farmer.full_name }}
+                            ({{ v.current_allocation.farmer.farmer_code }})
+                        {% else %}
+                            —
+                        {% endif %}
                     </td>
                     <td>{{ v.registered_by.full_name|default:"—" }}</td>
                     <td>{{ v.created_at|date:"d M Y" }}</td>

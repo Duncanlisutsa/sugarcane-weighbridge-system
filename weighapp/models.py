@@ -69,6 +69,7 @@ class Farmer(models.Model):
     def __str__(self):
         return f"{self.farmer_code} - {self.full_name}"
 
+
 # ─────────────────────────────────────────
 # TABLE 3: VEHICLES
 # Stores registered delivery vehicles
@@ -81,14 +82,6 @@ class Vehicle(models.Model):
     )
     make_model = models.CharField(max_length=100)
 
-    farmer = models.ForeignKey(
-        Farmer,
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name='vehicles'
-    )
-
     registered_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -100,6 +93,70 @@ class Vehicle(models.Model):
 
     def __str__(self):
         return f"{self.plate_number} - {self.make_model}"
+
+
+# ─────────────────────────────────────────
+# TABLE: TRACTOR ALLOCATIONS
+# Tracks which vehicle is currently assigned
+# to fetch cane for which farmer, and for how long
+# ─────────────────────────────────────────
+class TractorAllocation(models.Model):
+
+    STATUS_CHOICES = [
+        ('active',    'Active'),
+        ('completed', 'Completed'),
+    ]
+
+    vehicle = models.ForeignKey(
+        Vehicle,
+        on_delete=models.PROTECT,
+        related_name='allocations'
+    )
+
+    farmer = models.ForeignKey(
+        Farmer,
+        on_delete=models.PROTECT,
+        related_name='allocations'
+    )
+
+    allocated_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='allocations_made'
+    )
+
+    allocated_at = models.DateTimeField(default=timezone.now)
+    released_at  = models.DateTimeField(null=True, blank=True)
+
+    status = models.CharField(
+        max_length=10,
+        choices=STATUS_CHOICES,
+        default='active'
+    )
+
+    class Meta:
+        ordering = ['-allocated_at']
+
+    @property
+    def hours_elapsed(self):
+        """Hours since allocation started (until now, or until release)."""
+        end = self.released_at or timezone.now()
+        return (end - self.allocated_at).total_seconds() / 3600
+
+    @property
+    def status_color(self):
+        """green < 6hrs, orange 6-12hrs, red > 12hrs."""
+        hours = self.hours_elapsed
+        if hours < 6:
+            return 'green'
+        elif hours < 12:
+            return 'orange'
+        else:
+            return 'red'
+
+    def __str__(self):
+        return f"{self.vehicle.plate_number} -> {self.farmer.full_name} ({self.status})"
 
 
 # ─────────────────────────────────────────

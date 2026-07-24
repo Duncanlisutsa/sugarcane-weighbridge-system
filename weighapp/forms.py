@@ -1,5 +1,5 @@
 from django import forms
-from .models import Farmer, Vehicle, WeighingTransaction
+from .models import Farmer, Vehicle, WeighingTransaction, TractorAllocation
 
 
 # ─────────────────────────────────────────
@@ -11,15 +11,17 @@ class GrossWeightForm(forms.Form):
         queryset=Farmer.objects.all(),
         empty_label="-- Select Farmer --",
         widget=forms.Select(attrs={
-            'class': 'form-control'
+            'class': 'form-control',
+            'id':    'id_farmer'
         })
     )
 
     vehicle = forms.ModelChoiceField(
         queryset=Vehicle.objects.all(),
-        empty_label="-- Select Vehicle --",
+        empty_label="-- Select Farmer First --",
         widget=forms.Select(attrs={
-            'class': 'form-control'
+            'class': 'form-control',
+            'id':    'id_vehicle'
         })
     )
 
@@ -42,6 +44,25 @@ class GrossWeightForm(forms.Form):
             'rows':        2
         })
     )
+
+    def clean(self):
+        cleaned_data = super().clean()
+        farmer  = cleaned_data.get('farmer')
+        vehicle = cleaned_data.get('vehicle')
+
+        if farmer and vehicle:
+            has_active_allocation = TractorAllocation.objects.filter(
+                farmer=farmer,
+                vehicle=vehicle,
+                status='active'
+            ).exists()
+            if not has_active_allocation:
+                raise forms.ValidationError(
+                    f"{vehicle.plate_number} is not currently allocated "
+                    f"to {farmer.full_name}. Allocate the tractor first."
+                )
+
+        return cleaned_data
 
 
 # ─────────────────────────────────────────
@@ -115,7 +136,7 @@ MAKE_MODEL_CHOICES = [
 
 
 class VehicleForm(forms.ModelForm):
-    field_order = ['plate_number', 'make_model', 'make_model_other', 'farmer']
+    field_order = ['plate_number', 'make_model', 'make_model_other']
 
     make_model = forms.ChoiceField(
         choices=MAKE_MODEL_CHOICES,
@@ -133,7 +154,7 @@ class VehicleForm(forms.ModelForm):
 
     class Meta:
         model  = Vehicle
-        fields = ['plate_number', 'make_model', 'farmer']
+        fields = ['plate_number', 'make_model']
         widgets = {
             'plate_number': forms.TextInput(attrs={
                 'placeholder': 'e.g. KCA 123A'
@@ -162,3 +183,33 @@ class VehicleForm(forms.ModelForm):
         if commit:
             instance.save()
         return instance
+
+
+# ─────────────────────────────────────────
+# TRACTOR ALLOCATION FORM
+# Assign a vehicle to a farmer for cane pickup.
+# Vehicle choices are limited to vehicles that
+# aren't already on an active allocation.
+# ─────────────────────────────────────────
+class AllocationForm(forms.Form):
+
+    farmer = forms.ModelChoiceField(
+        queryset=Farmer.objects.all(),
+        empty_label="-- Select Farmer --",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    vehicle = forms.ModelChoiceField(
+        queryset=Vehicle.objects.none(),
+        empty_label="-- Select Available Vehicle --",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        allocated_vehicle_ids = TractorAllocation.objects.filter(
+            status='active'
+        ).values_list('vehicle_id', flat=True)
+        self.fields['vehicle'].queryset = Vehicle.objects.exclude(
+            id__in=allocated_vehicle_ids
+        ).order_by('plate_number')

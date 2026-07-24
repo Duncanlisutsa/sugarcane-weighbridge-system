@@ -50,7 +50,7 @@
         </div>
 
         <div style="display:flex; gap:12px; margin-top:8px;">
-            <button type="submit" class="btn btn-green">
+            <button type="submit" class="btn btn-green" id="submit-btn">
                 Save Gross Weight →
             </button>
             <a href="{% url 'clerk_dashboard' %}"
@@ -58,5 +58,47 @@
         </div>
     </form>
 </div>
+
+<script>
+    (function () {
+        var farmerSelect  = document.getElementById('id_farmer');
+        var vehicleSelect = document.getElementById('id_vehicle');
+        var submitBtn     = document.getElementById('submit-btn');
+
+        function updateVehicleOptions() {
+            var farmerId = farmerSelect.value;
+            vehicleSelect.innerHTML = '';
+
+            if (!farmerId) {
+                var opt = document.createElement('option');
+                opt.value = '';
+                opt.textContent = '-- Select Farmer First --';
+                vehicleSelect.appendChild(opt);
+                submitBtn.disabled = true;
+                return;
+            }
+
+            fetch('/api/farmer-vehicle/' + farmerId + '/')
+                .then(function (res) { return res.json(); })
+                .then(function (data) {
+                    var opt = document.createElement('option');
+                    if (data.has_vehicle) {
+                        opt.value = data.vehicle_id;
+                        opt.textContent = data.vehicle_label;
+                        vehicleSelect.appendChild(opt);
+                        submitBtn.disabled = false;
+                    } else {
+                        opt.value = '';
+                        opt.textContent = 'No tractor currently allocated to this farmer';
+                        vehicleSelect.appendChild(opt);
+                        submitBtn.disabled = true;
+                    }
+                });
+        }
+
+        farmerSelect.addEventListener('change', updateVehicleOptions);
+        updateVehicleOptions();
+    })();
+</script>
 
 {% endblock %}

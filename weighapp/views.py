@@ -1,10 +1,11 @@
 from django.shortcuts import render, redirect
+from django.http import JsonResponse
 from .sms import send_gross_weight_sms_async, send_completion_sms_async
 from .email_utils import send_gross_weight_email_async, send_completion_email_async
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import User, Farmer, Vehicle, WeighingTransaction, AuditLog
+from .models import User, Farmer, Vehicle, WeighingTransaction, AuditLog, TractorAllocation
 
 
 # ─────────────────────────────────────────
@@ -125,7 +126,7 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR')
 
 from django.utils import timezone
-from .forms import GrossWeightForm, TareWeightForm, FarmerForm, VehicleForm
+from .forms import GrossWeightForm, TareWeightForm, FarmerForm, VehicleForm, AllocationForm
 
 
 # ─────────────────────────────────────────
@@ -177,7 +178,7 @@ def weighing_step1(request):
 
             messages.success(request, " ".join(notice_parts))
             return redirect('weighing_step2', pk=transaction.pk)
-                       
+
     return render(request, 'weighapp/weighing_step1.html', {'form': form})
 
 
@@ -202,6 +203,13 @@ def weighing_step2(request, pk):
             transaction.tare_weight_kg = form.cleaned_data['tare_weight_kg']
             transaction.tare_time      = timezone.now()
             transaction.save()
+
+            # Weighing is complete — free up the vehicle for reallocation
+            TractorAllocation.objects.filter(
+                vehicle=transaction.vehicle,
+                farmer=transaction.farmer,
+                status='active'
+            ).update(status='completed', released_at=timezone.now())
 
             AuditLog.objects.create(
                 user       = request.user,
@@ -314,6 +322,84 @@ def register_vehicle(request):
             return redirect('clerk_dashboard')
 
     return render(request, 'weighapp/register_vehicle.html', {'form': form})
+
+
+# ─────────────────────────────────────────
+# ALLOCATE TRACTOR TO FARMER
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def allocate_tractor(request):
+    if request.user.role not in ['clerk', 'admin']:
+        return redirect('manager_dashboard')
+
+    form = AllocationForm()
+    if request.method == 'POST':
+        form = AllocationForm(request.POST)
+        if form.is_valid():
+            vehicle = form.cleaned_data['vehicle']
+            farmer  = form.cleaned_data['farmer']
+
+            # Guard against a stale dropdown / race condition where the
+            # vehicle got allocated between page load and submit
+            if TractorAllocation.objects.filter(vehicle=vehicle, status='active').exists():
+                messages.error(
+                    request,
+                    f"{vehicle.plate_number} is already allocated to a farmer."
+                )
+            else:
+                TractorAllocation.objects.create(
+                    vehicle      = vehicle,
+                    farmer       = farmer,
+                    allocated_by = request.user,
+                )
+                messages.success(
+                    request,
+                    f"{vehicle.plate_number} allocated to {farmer.full_name}."
+                )
+                return redirect('view_allocations')
+
+    return render(request, 'weighapp/allocate_tractor.html', {'form': form})
+
+
+# ─────────────────────────────────────────
+# TRACTOR ALLOCATION STATUS BOARD
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def view_allocations(request):
+    active_allocations = TractorAllocation.objects.filter(
+        status='active'
+    ).select_related('vehicle', 'farmer').order_by('allocated_at')
+
+    completed_allocations = TractorAllocation.objects.filter(
+        status='completed'
+    ).select_related('vehicle', 'farmer').order_by('-released_at')[:20]
+
+    context = {
+        'active_allocations':    active_allocations,
+        'completed_allocations': completed_allocations,
+    }
+    return render(request, 'weighapp/view_allocations.html', context)
+
+
+# ─────────────────────────────────────────
+# API: get a farmer's currently allocated vehicle
+# (used by weighing_step1 to filter the vehicle dropdown)
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def api_farmer_vehicle(request, farmer_id):
+    allocation = TractorAllocation.objects.filter(
+        farmer_id=farmer_id,
+        status='active'
+    ).select_related('vehicle').first()
+
+    if allocation:
+        return JsonResponse({
+            'has_vehicle':   True,
+            'vehicle_id':    allocation.vehicle.id,
+            'vehicle_label': f"{allocation.vehicle.plate_number} - {allocation.vehicle.make_model}",
+        })
+
+    return JsonResponse({'has_vehicle': False})
 
 
 # ─────────────────────────────────────────
@@ -617,6 +703,14 @@ def view_vehicles(request):
         return redirect('clerk_dashboard')
 
     vehicles = Vehicle.objects.all().order_by('plate_number')
+
+    active_allocations = {
+        a.vehicle_id: a
+        for a in TractorAllocation.objects.filter(status='active').select_related('farmer')
+    }
+    for v in vehicles:
+        v.current_allocation = active_allocations.get(v.id)
+
     context = {
         'vehicles': vehicles,
         'total': vehicles.count(),

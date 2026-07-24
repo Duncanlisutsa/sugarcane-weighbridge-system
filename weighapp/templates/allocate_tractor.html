@@ -1,0 +1,35 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Allocate Tractor{% endblock %}
+{% block content %}
+
+<div class="card" style="max-width:600px;">
+    <h2>🚜 Allocate Tractor to Farmer</h2>
+
+    <div class="alert alert-info">
+        Assign an available vehicle to a farmer for cane pickup.
+        A vehicle already allocated to another farmer won't appear
+        in the list below until it's released (after weighing is complete).
+    </div>
+
+    <form method="POST">
+        {% csrf_token %}
+        {% for field in form %}
+        <div class="form-group">
+            <label>{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <div class="alert alert-error">{{ field.errors }}</div>
+            {% endif %}
+        </div>
+        {% endfor %}
+        <div style="display:flex; gap:12px; margin-top:8px;">
+            <button type="submit" class="btn btn-green">
+                Allocate Tractor
+            </button>
+            <a href="{% url 'view_allocations' %}"
+               class="btn btn-gray">Cancel</a>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
