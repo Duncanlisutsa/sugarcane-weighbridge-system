@@ -97,11 +97,15 @@ class TareWeightForm(forms.Form):
 
 # ─────────────────────────────────────────
 # FARMER REGISTRATION FORM
+# (also reused for editing farmers)
 # ─────────────────────────────────────────
 class FarmerForm(forms.ModelForm):
     class Meta:
         model  = Farmer
-        fields = ['full_name', 'id_number', 'phone', 'email', 'zone']
+        fields = [
+            'full_name', 'id_number', 'phone', 'email', 'zone',
+            'next_of_kin_name', 'next_of_kin_phone', 'next_of_kin_relationship',
+        ]
         widgets = {
             'full_name': forms.TextInput(attrs={
                 'placeholder': 'Full name'
@@ -118,6 +122,20 @@ class FarmerForm(forms.ModelForm):
             'zone': forms.TextInput(attrs={
                 'placeholder': 'e.g. Zone A'
             }),
+            'next_of_kin_name': forms.TextInput(attrs={
+                'placeholder': "Next of kin's full name"
+            }),
+            'next_of_kin_phone': forms.TextInput(attrs={
+                'placeholder': '07XXXXXXXX'
+            }),
+            'next_of_kin_relationship': forms.TextInput(attrs={
+                'placeholder': 'e.g. Spouse, Son, Daughter, Sibling'
+            }),
+        }
+        labels = {
+            'next_of_kin_name': 'Next of Kin Name',
+            'next_of_kin_phone': 'Next of Kin Phone Number',
+            'next_of_kin_relationship': 'Relationship to Farmer',
         }
 
 

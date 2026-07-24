@@ -1,9 +1,10 @@
 {% extends 'weighapp/base.html' %}
-{% block title %}Register Farmer{% endblock %}
+{% block title %}Edit Farmer{% endblock %}
 {% block content %}
 
 <div class="card" style="max-width:600px;">
-    <h2>Register New Farmer</h2>
+    <h2>✏️ Edit Farmer — {{ farmer.farmer_code }}</h2>
+
     <form method="POST">
         {% csrf_token %}
         {% for field in form %}
@@ -20,9 +21,9 @@
         {% endfor %}
         <div style="display:flex; gap:12px; margin-top:8px;">
             <button type="submit" class="btn btn-green">
-                Register Farmer
+                Save Changes
             </button>
-            <a href="{% url 'clerk_dashboard' %}"
+            <a href="{% url 'view_farmers' %}"
                class="btn btn-gray">Cancel</a>
         </div>
     </form>

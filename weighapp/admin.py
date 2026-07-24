@@ -24,8 +24,10 @@ class CustomUserAdmin(UserAdmin):
 # ─────────────────────────────────────────
 @admin.register(Farmer)
 class FarmerAdmin(admin.ModelAdmin):
-    list_display  = ('farmer_code', 'full_name', 'phone', 'zone', 'created_at')
-    search_fields = ('farmer_code', 'full_name', 'id_number')
+    list_display  = ('farmer_code', 'full_name', 'phone', 'zone',
+                     'next_of_kin_name', 'next_of_kin_phone',
+                     'next_of_kin_relationship', 'created_at')
+    search_fields = ('farmer_code', 'full_name', 'id_number', 'next_of_kin_name')
     list_filter   = ('zone',)
 
 

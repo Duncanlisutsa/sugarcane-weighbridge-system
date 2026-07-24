@@ -47,6 +47,10 @@ class Farmer(models.Model):
     email       = models.EmailField(blank=True)
     zone        = models.CharField(max_length=50)
 
+    next_of_kin_name         = models.CharField(max_length=150, default='')
+    next_of_kin_phone        = models.CharField(max_length=15, default='')
+    next_of_kin_relationship = models.CharField(max_length=50, default='')
+
     registered_by = models.ForeignKey(
         User,
         on_delete=models.SET_NULL,
@@ -261,6 +265,7 @@ class AuditLog(models.Model):
         ('logout',          'User Logout'),
         ('weight_entry',    'Weight Entry'),
         ('farmer_created',  'Farmer Created'),
+        ('farmer_updated',  'Farmer Updated'),
         ('vehicle_created', 'Vehicle Created'),
         ('report_viewed',   'Report Viewed'),
         ('receipt_printed', 'Receipt Printed'),

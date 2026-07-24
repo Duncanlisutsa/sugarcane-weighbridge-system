@@ -17,6 +17,7 @@ urlpatterns = [
 
     # Registration
     path('farmer/register/',  views.register_farmer,  name='register_farmer'),
+    path('farmer/<int:pk>/edit/', views.edit_farmer,  name='edit_farmer'),
     path('vehicle/register/', views.register_vehicle, name='register_vehicle'),
 
     # Tractor allocation

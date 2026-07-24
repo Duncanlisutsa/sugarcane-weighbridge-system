@@ -81,6 +81,7 @@
         <a href="{% url 'register_vehicle' %}">🚛 Register Vehicle</a>
         <a href="{% url 'allocate_tractor' %}">🚜 Allocate Tractor</a>
         <a href="{% url 'view_allocations' %}">📋 Tractor Status</a>
+        <a href="{% url 'view_farmers' %}">👨‍🌾 View/Edit Farmers</a>
         {% endif %}
         {% if user.role == 'manager' or user.role == 'admin' %}
         <a href="{% url 'manager_dashboard' %}">🏠 Dashboard</a>

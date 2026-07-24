@@ -23,8 +23,14 @@
                     <th>ID Number</th>
                     <th>Phone</th>
                     <th>Zone</th>
+                    <th>Next of Kin</th>
+                    <th>NOK Phone</th>
+                    <th>Relationship</th>
                     <th>Registered By</th>
                     <th>Date Registered</th>
+                    {% if user.role == 'admin' or user.role == 'clerk' %}
+                    <th>Actions</th>
+                    {% endif %}
                 </tr>
             </thead>
             <tbody>
@@ -40,8 +46,16 @@
                             {{ f.zone }}
                         </span>
                     </td>
+                    <td>{{ f.next_of_kin_name|default:"—" }}</td>
+                    <td>{{ f.next_of_kin_phone|default:"—" }}</td>
+                    <td>{{ f.next_of_kin_relationship|default:"—" }}</td>
                     <td>{{ f.registered_by.full_name|default:"—" }}</td>
                     <td>{{ f.created_at|date:"d M Y" }}</td>
+                    {% if user.role == 'admin' or user.role == 'clerk' %}
+                    <td>
+                        <a href="{% url 'edit_farmer' f.pk %}" class="btn btn-gray" style="padding:4px 10px; font-size:13px;">Edit</a>
+                    </td>
+                    {% endif %}
                 </tr>
                 {% endfor %}
             </tbody>

@@ -293,6 +293,48 @@ def register_farmer(request):
 
 
 # ─────────────────────────────────────────
+# FARMER EDIT (admin + clerk)
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def edit_farmer(request, pk):
+    if request.user.role not in ['clerk', 'admin']:
+        return redirect('manager_dashboard')
+
+    try:
+        farmer = Farmer.objects.get(pk=pk)
+    except Farmer.DoesNotExist:
+        messages.error(request, "Farmer not found.")
+        return redirect('view_farmers')
+
+    if request.method == 'POST':
+        form = FarmerForm(request.POST, instance=farmer)
+        if form.is_valid():
+            old_name = farmer.full_name
+            form.save()
+            AuditLog.objects.create(
+                user       = request.user,
+                action     = 'farmer_updated',
+                table_name = 'farmer',
+                record_id  = farmer.id,
+                old_value  = old_name,
+                new_value  = farmer.full_name,
+                ip_address = get_client_ip(request)
+            )
+            messages.success(
+                request,
+                f"Farmer {farmer.full_name} updated successfully."
+            )
+            return redirect('view_farmers')
+    else:
+        form = FarmerForm(instance=farmer)
+
+    return render(request, 'weighapp/edit_farmer.html', {
+        'form': form,
+        'farmer': farmer,
+    })
+
+
+# ─────────────────────────────────────────
 # VEHICLE REGISTRATION
 # ─────────────────────────────────────────
 @login_required(login_url='login')
@@ -683,7 +725,7 @@ def reset_password(request, pk):
 # ─────────────────────────────────────────
 @login_required(login_url='login')
 def view_farmers(request):
-    if request.user.role not in ['manager', 'admin']:
+    if request.user.role not in ['manager', 'admin', 'clerk']:
         return redirect('clerk_dashboard')
 
     farmers = Farmer.objects.all().order_by('zone', 'full_name')
