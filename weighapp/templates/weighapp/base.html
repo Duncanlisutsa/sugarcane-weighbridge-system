@@ -16,13 +16,11 @@
         .navbar-right a.top-link:hover { background: #2E7D32; }
         .navbar-right a.btn-logout { background: #C62828; color: white; text-decoration: none; font-size: 13px; padding: 5px 14px; border-radius: 4px; font-weight: bold; }
         .page-wrapper { display: flex; flex: 1; }
-        .sidebar-left { width: 200px; min-width: 200px; background: #fff; border-right: 1px solid #e0e0e0; padding: 24px 0; display: flex; flex-direction: column; }
-        .sidebar-left .sidebar-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px; padding: 0 18px 10px; }
+        .sidebar-left { width: 200px; min-width: 200px; background: #fff; border-right: 1px solid #e0e0e0; padding: 24px 0; display: flex; flex-direction: column; position: sticky; top: 56px; align-self: flex-start; max-height: calc(100vh - 56px); overflow-y: auto; }        .sidebar-left .sidebar-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px; padding: 0 18px 10px; }
         .sidebar-left .sidebar-title:not(:first-child) { margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
         .sidebar-left a { display: flex; align-items: center; gap: 10px; color: #333; text-decoration: none; padding: 11px 18px; font-size: 14px; border-left: 3px solid transparent; transition: all 0.2s; }
         .sidebar-left a:hover { background: #F1F8E9; color: #1B5E20; border-left-color: #1B5E20; font-weight: bold; }
-        .sidebar-right { width: 180px; min-width: 180px; background: #fff; border-left: 1px solid #e0e0e0; padding: 24px 0; display: flex; flex-direction: column; }
-        .sidebar-right .sidebar-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px; padding: 0 18px 10px; }
+        .sidebar-right { width: 180px; min-width: 180px; background: #fff; border-left: 1px solid #e0e0e0; padding: 24px 0; display: flex; flex-direction: column; position: sticky; top: 56px; align-self: flex-start; max-height: calc(100vh - 56px); overflow-y: auto; }        .sidebar-right .sidebar-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px; padding: 0 18px 10px; }
         .sidebar-right a { display: flex; align-items: center; gap: 10px; color: #333; text-decoration: none; padding: 11px 18px; font-size: 14px; border-right: 3px solid transparent; transition: all 0.2s; }
         .sidebar-right a:hover { background: #F1F8E9; color: #1B5E20; border-right-color: #1B5E20; font-weight: bold; }
         .main-content { flex: 1; padding: 28px 24px; overflow-y: auto; }
