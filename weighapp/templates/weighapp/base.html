@@ -86,11 +86,9 @@
         <a href="{% url 'view_drivers' %}">🧑‍✈️ View/Edit Drivers</a>
         <a href="{% url 'driver_earnings' %}">💰 Driver Earnings</a>
         {% endif %}
-        {% if user.role == 'manager' or user.role == 'admin' %}
-        <a href="{% url 'manager_dashboard' %}">🏠 Dashboard</a>
         {% if user.role == 'manager' %}
+        <a href="{% url 'manager_dashboard' %}">🏠 Dashboard</a>
         <a href="{% url 'view_allocations' %}">📋 Tractor Status</a>
-        {% endif %}
         {% endif %}
     </div>
     <div class="main-content">
