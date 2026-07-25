@@ -18,6 +18,7 @@
         .page-wrapper { display: flex; flex: 1; }
         .sidebar-left { width: 200px; min-width: 200px; background: #fff; border-right: 1px solid #e0e0e0; padding: 24px 0; display: flex; flex-direction: column; }
         .sidebar-left .sidebar-title { font-size: 11px; font-weight: bold; color: #aaa; text-transform: uppercase; letter-spacing: 1px; padding: 0 18px 10px; }
+        .sidebar-left .sidebar-title:not(:first-child) { margin-top: 18px; padding-top: 14px; border-top: 1px solid #eee; }
         .sidebar-left a { display: flex; align-items: center; gap: 10px; color: #333; text-decoration: none; padding: 11px 18px; font-size: 14px; border-left: 3px solid transparent; transition: all 0.2s; }
         .sidebar-left a:hover { background: #F1F8E9; color: #1B5E20; border-left-color: #1B5E20; font-weight: bold; }
         .sidebar-right { width: 180px; min-width: 180px; background: #fff; border-left: 1px solid #e0e0e0; padding: 24px 0; display: flex; flex-direction: column; }
@@ -73,20 +74,27 @@
 </nav>
 <div class="page-wrapper">
     <div class="sidebar-left">
-        <div class="sidebar-title">Actions</div>
         {% if user.role == 'clerk' or user.role == 'admin' %}
+        <div class="sidebar-title">Overview</div>
         <a href="{% url 'clerk_dashboard' %}">🏠 Dashboard</a>
+
+        <div class="sidebar-title">Registration</div>
         <a href="{% url 'register_farmer' %}">👨‍🌾 Register Farmer</a>
         <a href="{% url 'register_vehicle' %}">🚛 Register Vehicle</a>
         <a href="{% url 'register_driver' %}">🧑‍✈️ Register Driver</a>
+
+        <div class="sidebar-title">Operations</div>
         <a href="{% url 'allocate_tractor' %}">🚜 Allocate Tractor</a>
         <a href="{% url 'weighing_step1' %}">⚖️ New Weighing</a>
         <a href="{% url 'view_allocations' %}">📋 Tractor Status</a>
+
+        <div class="sidebar-title">Records</div>
         <a href="{% url 'view_farmers' %}">👨‍🌾 View/Edit Farmers</a>
         <a href="{% url 'view_drivers' %}">🧑‍✈️ View/Edit Drivers</a>
         <a href="{% url 'driver_earnings' %}">💰 Driver Earnings</a>
         {% endif %}
         {% if user.role == 'manager' %}
+        <div class="sidebar-title">Overview</div>
         <a href="{% url 'manager_dashboard' %}">🏠 Dashboard</a>
         <a href="{% url 'view_allocations' %}">📋 Tractor Status</a>
         {% endif %}
