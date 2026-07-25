@@ -36,6 +36,12 @@ class User(AbstractUser):
 # ─────────────────────────────────────────
 class Farmer(models.Model):
 
+    ZONE_CHOICES = [
+        ('Zone A', 'Zone A '),
+        ('Zone B', 'Zone B '),
+        ('Zone C', 'Zone C '),
+    ]
+
     farmer_code = models.CharField(
         max_length=20,
         unique=True,
@@ -45,7 +51,7 @@ class Farmer(models.Model):
     id_number   = models.CharField(max_length=20, unique=True)
     phone       = models.CharField(max_length=15)
     email       = models.EmailField(blank=True)
-    zone        = models.CharField(max_length=50)
+    zone        = models.CharField(max_length=50, choices=ZONE_CHOICES)
 
     next_of_kin_name         = models.CharField(max_length=150, default='')
     next_of_kin_phone        = models.CharField(max_length=15, default='')

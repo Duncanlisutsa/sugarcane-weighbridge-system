@@ -119,9 +119,8 @@ class FarmerForm(forms.ModelForm):
             'email': forms.EmailInput(attrs={
                 'placeholder': 'farmer@example.com (optional)'
             }),
-            'zone': forms.TextInput(attrs={
-                'placeholder': 'e.g. Zone A'
-            }),
+            'zone': forms.Select(attrs={}),
+            
             'next_of_kin_name': forms.TextInput(attrs={
                 'placeholder': "Next of kin's full name"
             }),
