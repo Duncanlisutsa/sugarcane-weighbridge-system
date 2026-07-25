@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Farmer, Vehicle, WeighingTransaction, AuditLog, TractorAllocation
+from .models import User, Farmer, Vehicle, Driver, WeighingTransaction, AuditLog, TractorAllocation
 
 
 # ─────────────────────────────────────────
@@ -32,6 +32,15 @@ class FarmerAdmin(admin.ModelAdmin):
 
 
 # ─────────────────────────────────────────
+# DRIVER ADMIN
+# ─────────────────────────────────────────
+@admin.register(Driver)
+class DriverAdmin(admin.ModelAdmin):
+    list_display  = ('driver_code', 'full_name', 'phone', 'id_number', 'created_at')
+    search_fields = ('driver_code', 'full_name', 'id_number')
+
+
+# ─────────────────────────────────────────
 # VEHICLE ADMIN
 # ─────────────────────────────────────────
 @admin.register(Vehicle)
@@ -45,9 +54,9 @@ class VehicleAdmin(admin.ModelAdmin):
 # ─────────────────────────────────────────
 @admin.register(TractorAllocation)
 class TractorAllocationAdmin(admin.ModelAdmin):
-    list_display  = ('vehicle', 'farmer', 'status', 'allocated_at', 'released_at')
+    list_display  = ('vehicle', 'farmer', 'driver', 'status', 'allocated_at', 'released_at')
     list_filter   = ('status',)
-    search_fields = ('vehicle__plate_number', 'farmer__full_name')
+    search_fields = ('vehicle__plate_number', 'farmer__full_name', 'driver__full_name')
 
 
 # ─────────────────────────────────────────
@@ -55,11 +64,12 @@ class TractorAllocationAdmin(admin.ModelAdmin):
 # ─────────────────────────────────────────
 @admin.register(WeighingTransaction)
 class WeighingTransactionAdmin(admin.ModelAdmin):
-    list_display  = ('receipt_number', 'farmer', 'vehicle',
+    list_display  = ('receipt_number', 'farmer', 'vehicle', 'driver',
                      'gross_weight_kg', 'tare_weight_kg',
-                     'net_weight_kg', 'status', 'gross_time')
-    list_filter   = ('status',)
-    search_fields = ('receipt_number', 'farmer__full_name')
+                     'net_weight_kg', 'driver_earnings_kes',
+                     'payment_status', 'status', 'gross_time')
+    list_filter   = ('status', 'payment_status')
+    search_fields = ('receipt_number', 'farmer__full_name', 'driver__full_name')
     readonly_fields = ('net_weight_kg', 'receipt_number')
 
 

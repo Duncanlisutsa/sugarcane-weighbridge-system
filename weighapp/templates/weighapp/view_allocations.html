@@ -8,7 +8,7 @@
     <div class="alert alert-info">
         🟢 Under 6 hours &nbsp; | &nbsp;
         🟠 6–12 hours &nbsp; | &nbsp;
-        🔴 Over 12 hours (abnormal — flag for follow-up)
+        🔴 Over 12 hours (Follow Up)
     </div>
 
     {% if user.role == 'clerk' or user.role == 'admin' %}
@@ -24,6 +24,7 @@
                 <tr>
                     <th>Vehicle</th>
                     <th>Farmer</th>
+                    <th>Driver</th>
                     <th>Allocated At</th>
                     <th>Time Elapsed</th>
                     <th>Status</th>
@@ -35,6 +36,7 @@
                 <tr>
                     <td><strong>{{ a.vehicle.plate_number }}</strong> ({{ a.vehicle.make_model }})</td>
                     <td>{{ a.farmer.full_name }} ({{ a.farmer.farmer_code }})</td>
+                    <td>{{ a.driver.full_name|default:"—" }} {% if a.driver %}({{ a.driver.driver_code }}){% endif %}</td>
                     <td>{{ a.allocated_at|date:"d M Y, H:i" }}</td>
                     <td>{{ a.hours_elapsed|floatformat:1 }} hrs</td>
                     <td>
@@ -64,6 +66,7 @@
                 <tr>
                     <th>Vehicle</th>
                     <th>Farmer</th>
+                    <th>Driver</th>
                     <th>Allocated At</th>
                     <th>Released At</th>
                     <th>Duration</th>
@@ -74,6 +77,7 @@
                 <tr>
                     <td><strong>{{ a.vehicle.plate_number }}</strong></td>
                     <td>{{ a.farmer.full_name }} ({{ a.farmer.farmer_code }})</td>
+                    <td>{{ a.driver.full_name|default:"—" }} {% if a.driver %}({{ a.driver.driver_code }}){% endif %}</td>
                     <td>{{ a.allocated_at|date:"d M Y, H:i" }}</td>
                     <td>{{ a.released_at|date:"d M Y, H:i" }}</td>
                     <td>{{ a.hours_elapsed|floatformat:1 }} hrs</td>

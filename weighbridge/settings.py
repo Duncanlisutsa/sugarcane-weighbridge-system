@@ -128,6 +128,10 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
+# ── Driver payment rate ──
+# Drivers are paid per completed weighing based on net tonnage delivered.
+RATE_PER_TON_KES = 40
+
 
 # ── Africa's Talking SMS ──
 AFRICASTALKING_USERNAME = os.environ.get('AFRICASTALKING_USERNAME', 'sandbox')

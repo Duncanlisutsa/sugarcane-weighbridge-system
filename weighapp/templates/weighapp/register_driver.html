@@ -1,16 +1,9 @@
 {% extends 'weighapp/base.html' %}
-{% block title %}Allocate Tractor{% endblock %}
+{% block title %}Register Driver{% endblock %}
 {% block content %}
 
 <div class="card" style="max-width:600px;">
-    <h2>🚜 Allocate Tractor to Farmer</h2>
-
-    <div class="alert alert-info">
-        Assign an available vehicle and driver to a farmer for cane pickup.
-        A vehicle or driver already on an active allocation won't appear
-        in the list below until it's released (after weighing is complete).
-    </div>
-
+    <h2>🧑‍✈️ Register New Driver</h2>
     <form method="POST">
         {% csrf_token %}
         {% for field in form %}
@@ -24,9 +17,9 @@
         {% endfor %}
         <div style="display:flex; gap:12px; margin-top:8px;">
             <button type="submit" class="btn btn-green">
-                Allocate Tractor
+                Register Driver
             </button>
-            <a href="{% url 'view_allocations' %}"
+            <a href="{% url 'clerk_dashboard' %}"
                class="btn btn-gray">Cancel</a>
         </div>
     </form>

@@ -1,0 +1,147 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Driver Earnings{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>💰 Driver Earnings</h2>
+
+    <div class="alert alert-info">
+        Drivers are paid Ksh. {{ rate_per_ton }} per ton of net cane delivered.
+    </div>
+
+    <!-- Filter form -->
+    <form method="GET" style="display:flex; gap:16px;
+                              flex-wrap:wrap; align-items:flex-end;
+                              margin-bottom:20px;">
+        <div class="form-group" style="margin:0; flex:1; min-width:140px;">
+            <label>From Date</label>
+            <input type="date" name="date_from" value="{{ date_from }}">
+        </div>
+
+        <div class="form-group" style="margin:0; flex:1; min-width:140px;">
+            <label>To Date</label>
+            <input type="date" name="date_to" value="{{ date_to }}">
+        </div>
+
+        <div class="form-group" style="margin:0; flex:2; min-width:180px;">
+            <label>Driver</label>
+            <select name="driver">
+                <option value="">-- All Drivers --</option>
+                {% for d in drivers_for_filter %}
+                <option value="{{ d.id }}"
+                    {% if driver_id == d.id|stringformat:"s" %}
+                        selected
+                    {% endif %}>
+                    {{ d.driver_code }} — {{ d.full_name }}
+                </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display:flex; gap:8px;">
+            <button type="submit" class="btn btn-green">🔍 Filter</button>
+            <a href="{% url 'driver_earnings' %}" class="btn btn-gray">Reset</a>
+        </div>
+    </form>
+
+    <!-- Per-driver summary -->
+    <h3 style="margin-bottom:12px;">Summary by Driver</h3>
+    {% if drivers_summary %}
+    <div style="overflow-x:auto; margin-bottom:24px;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Driver</th>
+                    <th>Trips</th>
+                    <th>Total Tons</th>
+                    <th>Total Earnings (Ksh.)</th>
+                    <th>Unpaid Trips</th>
+                    <th>Unpaid Amount (Ksh.)</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for s in drivers_summary %}
+                <tr>
+                    <td><strong>{{ s.driver.driver_code }}</strong> — {{ s.driver.full_name }}</td>
+                    <td>{{ s.trip_count }}</td>
+                    <td>{{ s.total_tons }}</td>
+                    <td style="font-weight:bold; color:#1B5E20;">{{ s.total_earnings }}</td>
+                    <td>
+                        {% if s.unpaid_count > 0 %}
+                        <span class="badge badge-red">{{ s.unpaid_count }}</span>
+                        {% else %}
+                        <span class="badge badge-green">0</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ s.unpaid_earnings }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No earnings recorded for the selected filters.</div>
+    {% endif %}
+
+    <!-- Detailed transactions -->
+    <h3 style="margin-bottom:12px;">Trip Details</h3>
+    {% if transactions %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>Receipt No.</th>
+                    <th>Driver</th>
+                    <th>Farmer</th>
+                    <th>Vehicle</th>
+                    <th>Net (kg)</th>
+                    <th>Earnings (Ksh.)</th>
+                    <th>Date</th>
+                    <th>Payment Status</th>
+                    {% if user.role == 'admin' or user.role == 'manager' %}
+                    <th>Action</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for t in transactions %}
+                <tr>
+                    <td>
+                        <a href="{% url 'receipt' t.pk %}" style="color:#1B5E20; font-weight:bold;">
+                            {{ t.receipt_number }}
+                        </a>
+                    </td>
+                    <td>{{ t.driver.driver_code }} — {{ t.driver.full_name }}</td>
+                    <td>{{ t.farmer.full_name }}</td>
+                    <td>{{ t.vehicle.plate_number }}</td>
+                    <td>{{ t.net_weight_kg }}</td>
+                    <td style="font-weight:bold;">{{ t.driver_earnings_kes }}</td>
+                    <td>{{ t.gross_time|date:"d M Y" }}</td>
+                    <td>
+                        {% if t.payment_status == 'paid' %}
+                        <span class="badge badge-green">Paid</span>
+                        {% else %}
+                        <span class="badge badge-red">Unpaid</span>
+                        {% endif %}
+                    </td>
+                    {% if user.role == 'admin' or user.role == 'manager' %}
+                    <td>
+                        <form method="POST" action="{% url 'toggle_payment' t.pk %}" style="margin:0;">
+                            {% csrf_token %}
+                            <button type="submit" class="btn btn-gray" style="padding:4px 10px; font-size:13px;">
+                                Mark {% if t.payment_status == 'paid' %}Unpaid{% else %}Paid{% endif %}
+                            </button>
+                        </form>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">No trips found for the selected filters.</div>
+    {% endif %}
+</div>
+
+{% endblock %}

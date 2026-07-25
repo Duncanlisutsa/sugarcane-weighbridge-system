@@ -19,6 +19,13 @@ urlpatterns = [
     path('farmer/register/',  views.register_farmer,  name='register_farmer'),
     path('farmer/<int:pk>/edit/', views.edit_farmer,  name='edit_farmer'),
     path('vehicle/register/', views.register_vehicle, name='register_vehicle'),
+    path('driver/register/',  views.register_driver,  name='register_driver'),
+    path('driver/<int:pk>/edit/', views.edit_driver,  name='edit_driver'),
+
+    # Driver earnings
+    path('drivers/',  views.view_drivers,    name='view_drivers'),
+    path('earnings/', views.driver_earnings, name='driver_earnings'),
+    path('earnings/<int:pk>/toggle-payment/', views.toggle_payment, name='toggle_payment'),
 
     # Tractor allocation
     path('allocate/',    views.allocate_tractor, name='allocate_tractor'),

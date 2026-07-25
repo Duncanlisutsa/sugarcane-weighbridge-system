@@ -1,5 +1,5 @@
 from django import forms
-from .models import Farmer, Vehicle, WeighingTransaction, TractorAllocation
+from .models import Farmer, Vehicle, Driver, WeighingTransaction, TractorAllocation
 
 
 # ─────────────────────────────────────────
@@ -140,6 +140,27 @@ class FarmerForm(forms.ModelForm):
 
 
 # ─────────────────────────────────────────
+# DRIVER REGISTRATION FORM
+# (also reused for editing drivers)
+# ─────────────────────────────────────────
+class DriverForm(forms.ModelForm):
+    class Meta:
+        model  = Driver
+        fields = ['full_name', 'phone', 'id_number']
+        widgets = {
+            'full_name': forms.TextInput(attrs={
+                'placeholder': "Driver's full name"
+            }),
+            'phone': forms.TextInput(attrs={
+                'placeholder': '07XXXXXXXX'
+            }),
+            'id_number': forms.TextInput(attrs={
+                'placeholder': 'National ID number'
+            }),
+        }
+
+
+# ─────────────────────────────────────────
 # VEHICLE REGISTRATION FORM
 # ─────────────────────────────────────────
 MAKE_MODEL_CHOICES = [
@@ -205,9 +226,9 @@ class VehicleForm(forms.ModelForm):
 
 # ─────────────────────────────────────────
 # TRACTOR ALLOCATION FORM
-# Assign a vehicle to a farmer for cane pickup.
-# Vehicle choices are limited to vehicles that
-# aren't already on an active allocation.
+# Assign a vehicle and driver to a farmer for cane pickup.
+# Vehicle/driver choices are limited to ones not already
+# on an active allocation.
 # ─────────────────────────────────────────
 class AllocationForm(forms.Form):
 
@@ -223,6 +244,12 @@ class AllocationForm(forms.Form):
         widget=forms.Select(attrs={'class': 'form-control'})
     )
 
+    driver = forms.ModelChoiceField(
+        queryset=Driver.objects.none(),
+        empty_label="-- Select Available Driver --",
+        widget=forms.Select(attrs={'class': 'form-control'})
+    )
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         allocated_vehicle_ids = TractorAllocation.objects.filter(
@@ -231,3 +258,10 @@ class AllocationForm(forms.Form):
         self.fields['vehicle'].queryset = Vehicle.objects.exclude(
             id__in=allocated_vehicle_ids
         ).order_by('plate_number')
+
+        allocated_driver_ids = TractorAllocation.objects.filter(
+            status='active', driver__isnull=False
+        ).values_list('driver_id', flat=True)
+        self.fields['driver'].queryset = Driver.objects.exclude(
+            id__in=allocated_driver_ids
+        ).order_by('full_name')

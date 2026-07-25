@@ -1,11 +1,12 @@
 from django.shortcuts import render, redirect
+from django.conf import settings
 from django.http import JsonResponse
 from .sms import send_gross_weight_sms_async, send_completion_sms_async
 from .email_utils import send_gross_weight_email_async, send_completion_email_async
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from .models import User, Farmer, Vehicle, WeighingTransaction, AuditLog, TractorAllocation
+from .models import User, Farmer, Vehicle, Driver, WeighingTransaction, AuditLog, TractorAllocation
 
 
 # ─────────────────────────────────────────
@@ -126,7 +127,7 @@ def get_client_ip(request):
     return request.META.get('REMOTE_ADDR')
 
 from django.utils import timezone
-from .forms import GrossWeightForm, TareWeightForm, FarmerForm, VehicleForm, AllocationForm
+from .forms import GrossWeightForm, TareWeightForm, FarmerForm, VehicleForm, AllocationForm, DriverForm
 
 
 # ─────────────────────────────────────────
@@ -142,9 +143,22 @@ def weighing_step1(request):
     if request.method == 'POST':
         form = GrossWeightForm(request.POST)
         if form.is_valid():
+            farmer  = form.cleaned_data['farmer']
+            vehicle = form.cleaned_data['vehicle']
+
+            # Pull the driver from the active allocation tying this
+            # farmer + vehicle together, so earnings can be attributed
+            active_allocation = TractorAllocation.objects.filter(
+                farmer=farmer,
+                vehicle=vehicle,
+                status='active'
+            ).first()
+            driver = active_allocation.driver if active_allocation else None
+
             transaction = WeighingTransaction.objects.create(
-                farmer          = form.cleaned_data['farmer'],
-                vehicle         = form.cleaned_data['vehicle'],
+                farmer          = farmer,
+                vehicle         = vehicle,
+                driver          = driver,
                 gross_weight_kg = form.cleaned_data['gross_weight_kg'],
                 clerk           = request.user,
                 notes           = form.cleaned_data['notes'],
@@ -367,6 +381,203 @@ def register_vehicle(request):
 
 
 # ─────────────────────────────────────────
+# DRIVER REGISTRATION
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def register_driver(request):
+    if request.user.role not in ['clerk', 'admin']:
+        return redirect('manager_dashboard')
+
+    form = DriverForm()
+    if request.method == 'POST':
+        form = DriverForm(request.POST)
+        if form.is_valid():
+            driver = form.save(commit=False)
+            driver.registered_by = request.user
+            driver.save()
+            AuditLog.objects.create(
+                user       = request.user,
+                action     = 'driver_created',
+                table_name = 'driver',
+                record_id  = driver.id,
+                new_value  = driver.full_name,
+                ip_address = get_client_ip(request)
+            )
+            messages.success(
+                request,
+                f"Driver {driver.full_name} ({driver.driver_code}) registered successfully."
+            )
+            return redirect('clerk_dashboard')
+
+    return render(request, 'weighapp/register_driver.html', {'form': form})
+
+
+# ─────────────────────────────────────────
+# DRIVER EDIT (admin + clerk)
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def edit_driver(request, pk):
+    if request.user.role not in ['clerk', 'admin']:
+        return redirect('manager_dashboard')
+
+    try:
+        driver = Driver.objects.get(pk=pk)
+    except Driver.DoesNotExist:
+        messages.error(request, "Driver not found.")
+        return redirect('view_drivers')
+
+    if request.method == 'POST':
+        form = DriverForm(request.POST, instance=driver)
+        if form.is_valid():
+            old_name = driver.full_name
+            form.save()
+            AuditLog.objects.create(
+                user       = request.user,
+                action     = 'driver_updated',
+                table_name = 'driver',
+                record_id  = driver.id,
+                old_value  = old_name,
+                new_value  = driver.full_name,
+                ip_address = get_client_ip(request)
+            )
+            messages.success(
+                request,
+                f"Driver {driver.full_name} updated successfully."
+            )
+            return redirect('view_drivers')
+    else:
+        form = DriverForm(instance=driver)
+
+    return render(request, 'weighapp/edit_driver.html', {
+        'form': form,
+        'driver': driver,
+    })
+
+
+# ─────────────────────────────────────────
+# VIEW DRIVERS (admin, manager, clerk)
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def view_drivers(request):
+    if request.user.role not in ['manager', 'admin', 'clerk']:
+        return redirect('clerk_dashboard')
+
+    drivers = Driver.objects.all().order_by('full_name')
+    context = {
+        'drivers': drivers,
+        'total':   drivers.count(),
+    }
+    return render(request, 'weighapp/view_drivers.html', context)
+
+
+# ─────────────────────────────────────────
+# DRIVER EARNINGS (admin, manager, clerk can view;
+# only admin/manager can mark payments)
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def driver_earnings(request):
+    if request.user.role not in ['manager', 'admin', 'clerk']:
+        return redirect('clerk_dashboard')
+
+    from django.db.models import Sum, Count, Q
+
+    date_from = request.GET.get('date_from', '')
+    date_to   = request.GET.get('date_to', '')
+    driver_id = request.GET.get('driver', '')
+
+    transactions = WeighingTransaction.objects.filter(
+        status='complete',
+        driver__isnull=False
+    ).select_related('driver', 'farmer', 'vehicle').order_by('-gross_time')
+
+    if date_from:
+        transactions = transactions.filter(gross_time__date__gte=date_from)
+    if date_to:
+        transactions = transactions.filter(gross_time__date__lte=date_to)
+    if driver_id:
+        transactions = transactions.filter(driver__id=driver_id)
+
+    # Per-driver summary: total tonnage, total earnings, unpaid count
+    drivers_summary = []
+    for driver in Driver.objects.all().order_by('full_name'):
+        driver_txns = transactions.filter(driver=driver)
+        if not driver_txns.exists():
+            continue
+        total_net_kg = driver_txns.aggregate(t=Sum('net_weight_kg'))['t'] or 0
+        total_tons = total_net_kg / 1000
+        total_earnings = round(total_tons * settings.RATE_PER_TON_KES, 2)
+        unpaid_count = driver_txns.filter(payment_status='unpaid').count()
+        unpaid_earnings = round(
+            (driver_txns.filter(payment_status='unpaid').aggregate(
+                t=Sum('net_weight_kg'))['t'] or 0) / 1000 * settings.RATE_PER_TON_KES, 2
+        )
+        drivers_summary.append({
+            'driver':          driver,
+            'trip_count':      driver_txns.count(),
+            'total_tons':      round(total_tons, 2),
+            'total_earnings':  total_earnings,
+            'unpaid_count':    unpaid_count,
+            'unpaid_earnings': unpaid_earnings,
+        })
+
+    drivers_for_filter = Driver.objects.all().order_by('full_name')
+
+    context = {
+        'transactions':       transactions,
+        'drivers_summary':    drivers_summary,
+        'drivers_for_filter': drivers_for_filter,
+        'date_from':          date_from,
+        'date_to':            date_to,
+        'driver_id':          driver_id,
+        'rate_per_ton':       settings.RATE_PER_TON_KES,
+    }
+    return render(request, 'weighapp/driver_earnings.html', context)
+
+
+# ─────────────────────────────────────────
+# TOGGLE A SINGLE TRANSACTION'S PAYMENT STATUS
+# Restricted to admin/manager — this is a financial action,
+# separate from the read-only earnings view clerks can see.
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def toggle_payment(request, pk):
+    if request.user.role not in ['manager', 'admin']:
+        return redirect('clerk_dashboard')
+
+    try:
+        transaction = WeighingTransaction.objects.get(pk=pk)
+    except WeighingTransaction.DoesNotExist:
+        messages.error(request, "Transaction not found.")
+        return redirect('driver_earnings')
+
+    if request.method == 'POST':
+        if transaction.payment_status == 'unpaid':
+            transaction.payment_status = 'paid'
+            transaction.paid_at = timezone.now()
+            transaction.paid_by = request.user
+        else:
+            transaction.payment_status = 'unpaid'
+            transaction.paid_at = None
+            transaction.paid_by = None
+        transaction.save()
+
+        AuditLog.objects.create(
+            user       = request.user,
+            action     = 'payment_marked',
+            table_name = 'weighingtransaction',
+            record_id  = transaction.id,
+            new_value  = f"Payment status: {transaction.payment_status}",
+            ip_address = get_client_ip(request)
+        )
+        messages.success(
+            request,
+            f"{transaction.receipt_number} marked as {transaction.payment_status}."
+        )
+
+    return redirect('driver_earnings')
+
+
+# ─────────────────────────────────────────
 # ALLOCATE TRACTOR TO FARMER
 # ─────────────────────────────────────────
 @login_required(login_url='login')
@@ -380,23 +591,30 @@ def allocate_tractor(request):
         if form.is_valid():
             vehicle = form.cleaned_data['vehicle']
             farmer  = form.cleaned_data['farmer']
+            driver  = form.cleaned_data['driver']
 
             # Guard against a stale dropdown / race condition where the
-            # vehicle got allocated between page load and submit
+            # vehicle or driver got allocated between page load and submit
             if TractorAllocation.objects.filter(vehicle=vehicle, status='active').exists():
                 messages.error(
                     request,
                     f"{vehicle.plate_number} is already allocated to a farmer."
                 )
+            elif TractorAllocation.objects.filter(driver=driver, status='active').exists():
+                messages.error(
+                    request,
+                    f"{driver.full_name} is already allocated to another tractor."
+                )
             else:
                 TractorAllocation.objects.create(
                     vehicle      = vehicle,
                     farmer       = farmer,
+                    driver       = driver,
                     allocated_by = request.user,
                 )
                 messages.success(
                     request,
-                    f"{vehicle.plate_number} allocated to {farmer.full_name}."
+                    f"{vehicle.plate_number} allocated to {farmer.full_name}, driven by {driver.full_name}."
                 )
                 return redirect('view_allocations')
 
@@ -410,11 +628,11 @@ def allocate_tractor(request):
 def view_allocations(request):
     active_allocations = TractorAllocation.objects.filter(
         status='active'
-    ).select_related('vehicle', 'farmer').order_by('allocated_at')
+    ).select_related('vehicle', 'farmer', 'driver').order_by('allocated_at')
 
     completed_allocations = TractorAllocation.objects.filter(
         status='completed'
-    ).select_related('vehicle', 'farmer').order_by('-released_at')[:20]
+    ).select_related('vehicle', 'farmer', 'driver').order_by('-released_at')[:20]
 
     context = {
         'active_allocations':    active_allocations,

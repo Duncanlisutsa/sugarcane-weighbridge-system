@@ -79,9 +79,12 @@
         <a href="{% url 'weighing_step1' %}">⚖️ New Weighing</a>
         <a href="{% url 'register_farmer' %}">👨‍🌾 Register Farmer</a>
         <a href="{% url 'register_vehicle' %}">🚛 Register Vehicle</a>
+        <a href="{% url 'register_driver' %}">🧑‍✈️ Register Driver</a>
         <a href="{% url 'allocate_tractor' %}">🚜 Allocate Tractor</a>
         <a href="{% url 'view_allocations' %}">📋 Tractor Status</a>
         <a href="{% url 'view_farmers' %}">👨‍🌾 View/Edit Farmers</a>
+        <a href="{% url 'view_drivers' %}">🧑‍✈️ View/Edit Drivers</a>
+        <a href="{% url 'driver_earnings' %}">💰 Driver Earnings</a>
         {% endif %}
         {% if user.role == 'manager' or user.role == 'admin' %}
         <a href="{% url 'manager_dashboard' %}">🏠 Dashboard</a>
@@ -102,6 +105,8 @@
         <a href="{% url 'reports' %}">📊 Reports</a>
         <a href="{% url 'view_farmers' %}">👨‍🌾 Farmers</a>
         <a href="{% url 'view_vehicles' %}">🚛 Vehicles</a>
+        <a href="{% url 'view_drivers' %}">🧑‍✈️ Drivers</a>
+        <a href="{% url 'driver_earnings' %}">💰 Driver Earnings</a>
         <a href="{% url 'view_clerks' %}">👤 Clerks</a>
     </div>
     {% endif %}

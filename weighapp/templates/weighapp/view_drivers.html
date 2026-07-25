@@ -1,0 +1,65 @@
+{% extends 'weighapp/base.html' %}
+{% block title %}Registered Drivers{% endblock %}
+{% block content %}
+
+<div class="card">
+    <h2>🧑‍✈️ Registered Drivers</h2>
+
+    <div class="summary-cards" style="margin-bottom:20px;">
+        <div class="summary-card">
+            <div class="number">{{ total }}</div>
+            <div class="label">Total Drivers</div>
+        </div>
+    </div>
+
+    {% if user.role == 'clerk' or user.role == 'admin' %}
+    <a href="{% url 'register_driver' %}" class="btn btn-green" style="margin-bottom:16px; display:inline-block; text-decoration:none;">
+        + Register Driver
+    </a>
+    {% endif %}
+
+    {% if drivers %}
+    <div style="overflow-x:auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Driver Code</th>
+                    <th>Full Name</th>
+                    <th>Phone</th>
+                    <th>ID Number</th>
+                    <th>Registered By</th>
+                    <th>Date Registered</th>
+                    {% if user.role == 'admin' or user.role == 'clerk' %}
+                    <th>Actions</th>
+                    {% endif %}
+                </tr>
+            </thead>
+            <tbody>
+                {% for d in drivers %}
+                <tr>
+                    <td>{{ forloop.counter }}</td>
+                    <td><strong>{{ d.driver_code }}</strong></td>
+                    <td>{{ d.full_name }}</td>
+                    <td>{{ d.phone }}</td>
+                    <td>{{ d.id_number }}</td>
+                    <td>{{ d.registered_by.full_name|default:"—" }}</td>
+                    <td>{{ d.created_at|date:"d M Y" }}</td>
+                    {% if user.role == 'admin' or user.role == 'clerk' %}
+                    <td>
+                        <a href="{% url 'edit_driver' d.pk %}" class="btn btn-gray" style="padding:4px 10px; font-size:13px;">Edit</a>
+                    </td>
+                    {% endif %}
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info">
+        No drivers registered yet.
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

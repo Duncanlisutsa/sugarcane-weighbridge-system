@@ -75,6 +75,44 @@ class Farmer(models.Model):
 
 
 # ─────────────────────────────────────────
+# TABLE: DRIVERS
+# Truck/tractor drivers, paid per ton delivered.
+# ─────────────────────────────────────────
+class Driver(models.Model):
+
+    driver_code = models.CharField(
+        max_length=20,
+        unique=True,
+        blank=True
+    )
+    full_name = models.CharField(max_length=150)
+    phone     = models.CharField(max_length=15)
+    id_number = models.CharField(max_length=20, unique=True)
+
+    registered_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='drivers_registered'
+    )
+
+    created_at = models.DateTimeField(default=timezone.now)
+
+    def save(self, *args, **kwargs):
+        if not self.driver_code:
+            last_driver = Driver.objects.order_by('-id').first()
+            if last_driver and last_driver.driver_code[2:].isdigit():
+                last_num = int(last_driver.driver_code[2:])
+            else:
+                last_num = 0
+            self.driver_code = f"DR{last_num + 1:03d}"
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return f"{self.driver_code} - {self.full_name}"
+
+
+# ─────────────────────────────────────────
 # TABLE 3: VEHICLES
 # Stores registered delivery vehicles
 # ─────────────────────────────────────────
@@ -121,6 +159,14 @@ class TractorAllocation(models.Model):
         Farmer,
         on_delete=models.PROTECT,
         related_name='allocations'
+    )
+
+    driver = models.ForeignKey(
+        Driver,
+        on_delete=models.PROTECT,
+        related_name='allocations',
+        null=True,
+        blank=True
     )
 
     allocated_by = models.ForeignKey(
@@ -185,6 +231,34 @@ class WeighingTransaction(models.Model):
         Vehicle,
         on_delete=models.PROTECT,
         related_name='transactions'
+    )
+
+    driver = models.ForeignKey(
+        Driver,
+        on_delete=models.PROTECT,
+        related_name='transactions',
+        null=True,
+        blank=True,
+        help_text="Driver who delivered this load, captured from the active allocation at gross weighing time"
+    )
+
+    PAYMENT_STATUS_CHOICES = [
+        ('unpaid', 'Unpaid'),
+        ('paid',   'Paid'),
+    ]
+
+    payment_status = models.CharField(
+        max_length=10,
+        choices=PAYMENT_STATUS_CHOICES,
+        default='unpaid'
+    )
+    paid_at = models.DateTimeField(null=True, blank=True)
+    paid_by = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='payments_marked'
     )
 
     gross_weight_kg = models.DecimalField(
@@ -252,6 +326,18 @@ class WeighingTransaction(models.Model):
     def __str__(self):
         return f"{self.receipt_number} | {self.farmer} | {self.net_weight_kg}kg"
 
+    @property
+    def driver_earnings_kes(self):
+        """
+        Driver earnings for this delivery, at settings.RATE_PER_TON_KES per ton.
+        Only meaningful once the load is fully weighed (net_weight_kg set).
+        """
+        if self.net_weight_kg is None:
+            return None
+        from django.conf import settings
+        tons = self.net_weight_kg / 1000
+        return round(tons * settings.RATE_PER_TON_KES, 2)
+
 
 # ─────────────────────────────────────────
 # TABLE 5: AUDIT LOG
@@ -266,6 +352,9 @@ class AuditLog(models.Model):
         ('weight_entry',    'Weight Entry'),
         ('farmer_created',  'Farmer Created'),
         ('farmer_updated',  'Farmer Updated'),
+        ('driver_created',  'Driver Created'),
+        ('driver_updated',  'Driver Updated'),
+        ('payment_marked',  'Driver Payment Marked'),
         ('vehicle_created', 'Vehicle Created'),
         ('report_viewed',   'Report Viewed'),
         ('receipt_printed', 'Receipt Printed'),
