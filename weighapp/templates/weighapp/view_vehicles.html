@@ -12,6 +12,12 @@
         </div>
     </div>
 
+    <div style="margin-bottom:16px;">
+        <a href="{% url 'export_list_pdf' 'vehicles' %}" class="btn btn-blue" target="_blank" rel="noopener">
+            🖨️ View / Print PDF
+        </a>
+    </div>
+
     {% if vehicles %}
     <div style="overflow-x:auto;">
         <table>

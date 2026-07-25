@@ -47,4 +47,7 @@ urlpatterns = [
     path('farmers/',  views.view_farmers,  name='view_farmers'),
     path('vehicles/', views.view_vehicles, name='view_vehicles'),
     path('clerks/',   views.view_clerks,   name='view_clerks'),
+
+    # Generic list PDF export (farmers / vehicles / drivers / clerks / earnings)
+    path('export/<str:list_type>/', views.export_list_pdf, name='export_list_pdf'),
     ]

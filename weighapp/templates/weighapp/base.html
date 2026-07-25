@@ -76,11 +76,11 @@
         <div class="sidebar-title">Actions</div>
         {% if user.role == 'clerk' or user.role == 'admin' %}
         <a href="{% url 'clerk_dashboard' %}">🏠 Dashboard</a>
-        <a href="{% url 'weighing_step1' %}">⚖️ New Weighing</a>
         <a href="{% url 'register_farmer' %}">👨‍🌾 Register Farmer</a>
         <a href="{% url 'register_vehicle' %}">🚛 Register Vehicle</a>
         <a href="{% url 'register_driver' %}">🧑‍✈️ Register Driver</a>
         <a href="{% url 'allocate_tractor' %}">🚜 Allocate Tractor</a>
+        <a href="{% url 'weighing_step1' %}">⚖️ New Weighing</a>
         <a href="{% url 'view_allocations' %}">📋 Tractor Status</a>
         <a href="{% url 'view_farmers' %}">👨‍🌾 View/Edit Farmers</a>
         <a href="{% url 'view_drivers' %}">🧑‍✈️ View/Edit Drivers</a>
@@ -88,7 +88,9 @@
         {% endif %}
         {% if user.role == 'manager' or user.role == 'admin' %}
         <a href="{% url 'manager_dashboard' %}">🏠 Dashboard</a>
+        {% if user.role == 'manager' %}
         <a href="{% url 'view_allocations' %}">📋 Tractor Status</a>
+        {% endif %}
         {% endif %}
     </div>
     <div class="main-content">

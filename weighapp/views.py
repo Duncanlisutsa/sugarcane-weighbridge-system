@@ -995,3 +995,146 @@ def view_clerks(request):
         'total': clerks.count(),
     }
     return render(request, 'weighapp/view_clerks.html', context)
+
+    # ─────────────────────────────────────────
+# GENERIC PDF EXPORT — Farmers, Vehicles,
+# Drivers, Clerks, Driver Earnings summary
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def export_list_pdf(request, list_type):
+    from django.db.models import Sum
+    from django.http import HttpResponse, Http404
+    from reportlab.lib.pagesizes import A4, landscape
+    from reportlab.lib import colors
+    from reportlab.lib.units import cm
+    from reportlab.platypus import (
+        SimpleDocTemplate, Table, TableStyle,
+        Paragraph, Spacer
+    )
+    from reportlab.lib.styles import getSampleStyleSheet
+    import datetime
+
+    allowed_roles = {
+        'farmers':  ['manager', 'admin', 'clerk'],
+        'vehicles': ['manager', 'admin'],
+        'drivers':  ['manager', 'admin', 'clerk'],
+        'clerks':   ['manager', 'admin'],
+        'earnings': ['manager', 'admin', 'clerk'],
+    }
+    if list_type not in allowed_roles:
+        raise Http404("Unknown report type.")
+    if request.user.role not in allowed_roles[list_type]:
+        return redirect('clerk_dashboard')
+
+    titles = {
+        'farmers':  'Registered Farmers',
+        'vehicles': 'Registered Vehicles',
+        'drivers':  'Registered Drivers',
+        'clerks':   'System Clerks',
+        'earnings': 'Driver Earnings Summary',
+    }
+
+    # Build the header row + data rows per list type
+    if list_type == 'farmers':
+        header = ['#', 'Farmer Code', 'Full Name', 'ID Number', 'Phone', 'Zone', 'Date Registered']
+        rows = Farmer.objects.all().order_by('zone', 'full_name')
+        data = [[
+            i + 1, f.farmer_code, f.full_name, f.id_number, f.phone,
+            f.zone, f.created_at.strftime('%d/%m/%Y')
+        ] for i, f in enumerate(rows)]
+
+    elif list_type == 'vehicles':
+        header = ['#', 'Plate Number', 'Make & Model', 'Status', 'Date Registered']
+        rows = Vehicle.objects.all().order_by('plate_number')
+        active_allocations = {
+            a.vehicle_id: a
+            for a in TractorAllocation.objects.filter(status='active')
+        }
+        data = []
+        for i, v in enumerate(rows):
+            status = 'Allocated' if active_allocations.get(v.id) else 'Available'
+            data.append([i + 1, v.plate_number, v.make_model, status, v.created_at.strftime('%d/%m/%Y')])
+
+    elif list_type == 'drivers':
+        header = ['#', 'Driver Code', 'Full Name', 'Phone', 'ID Number', 'Date Registered']
+        rows = Driver.objects.all().order_by('full_name')
+        data = [[
+            i + 1, d.driver_code, d.full_name, d.phone, d.id_number,
+            d.created_at.strftime('%d/%m/%Y')
+        ] for i, d in enumerate(rows)]
+
+    elif list_type == 'clerks':
+        header = ['#', 'Full Name', 'Username', 'Email', 'Status', 'Date Added']
+        rows = User.objects.filter(role='clerk', is_superuser=False).order_by('full_name')
+        data = [[
+            i + 1, c.full_name, c.username, c.email or '—',
+            'Active' if c.is_active else 'Inactive', c.date_joined.strftime('%d/%m/%Y')
+        ] for i, c in enumerate(rows)]
+
+    elif list_type == 'earnings':
+        date_from = request.GET.get('date_from', '')
+        date_to   = request.GET.get('date_to', '')
+        driver_id = request.GET.get('driver', '')
+
+        transactions = WeighingTransaction.objects.filter(
+            status='complete', driver__isnull=False
+        )
+        if date_from:
+            transactions = transactions.filter(gross_time__date__gte=date_from)
+        if date_to:
+            transactions = transactions.filter(gross_time__date__lte=date_to)
+        if driver_id:
+            transactions = transactions.filter(driver__id=driver_id)
+
+        header = ['Driver', 'Trips', 'Total Tons', 'Total Earnings (Ksh.)', 'Unpaid Trips', 'Unpaid Amount (Ksh.)']
+        data = []
+        for driver in Driver.objects.all().order_by('full_name'):
+            driver_txns = transactions.filter(driver=driver)
+            if not driver_txns.exists():
+                continue
+            total_net_kg = driver_txns.aggregate(t=Sum('net_weight_kg'))['t'] or 0
+            total_tons = total_net_kg / 1000
+            total_earnings = round(total_tons * settings.RATE_PER_TON_KES, 2)
+            unpaid_count = driver_txns.filter(payment_status='unpaid').count()
+            unpaid_earnings = round(
+                (driver_txns.filter(payment_status='unpaid').aggregate(
+                    t=Sum('net_weight_kg'))['t'] or 0) / 1000 * settings.RATE_PER_TON_KES, 2
+            )
+            data.append([
+                f"{driver.driver_code} — {driver.full_name}", driver_txns.count(),
+                round(total_tons, 2), total_earnings, unpaid_count, unpaid_earnings
+            ])
+
+    # Build PDF — opens inline in the browser so it can be printed directly
+    response = HttpResponse(content_type='application/pdf')
+    response['Content-Disposition'] = f'inline; filename="{list_type}_report.pdf"'
+
+    doc    = SimpleDocTemplate(response, pagesize=landscape(A4))
+    styles = getSampleStyleSheet()
+    story  = []
+
+    story.append(Paragraph(f"Sugarcane Weighbridge System — {titles[list_type]}", styles['Title']))
+    story.append(Paragraph(
+        f"Generated: {datetime.datetime.now().strftime('%d %B %Y %H:%M')}",
+        styles['Normal']
+    ))
+    story.append(Spacer(1, 0.4 * cm))
+    story.append(Paragraph(f"Total Records: {len(data)}", styles['Normal']))
+    story.append(Spacer(1, 0.4 * cm))
+
+    table = Table([header] + data, repeatRows=1)
+    table.setStyle(TableStyle([
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#1B5E20')),
+        ('TEXTCOLOR',  (0, 0), (-1, 0), colors.white),
+        ('FONTNAME',   (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE',   (0, 0), (-1, 0), 9),
+        ('FONTSIZE',   (0, 1), (-1, -1), 8),
+        ('ROWBACKGROUNDS', (0, 1), (-1, -1), [colors.white, colors.HexColor('#F1F8E9')]),
+        ('GRID',       (0, 0), (-1, -1), 0.5, colors.grey),
+        ('ALIGN',      (0, 0), (-1, -1), 'LEFT'),
+        ('PADDING',    (0, 0), (-1, -1), 4),
+    ]))
+
+    story.append(table)
+    doc.build(story)
+    return response

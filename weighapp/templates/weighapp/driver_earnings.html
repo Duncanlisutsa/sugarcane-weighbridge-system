@@ -44,6 +44,13 @@
         </div>
     </form>
 
+    <div style="margin-bottom:16px;">
+        <a href="{% url 'export_list_pdf' 'earnings' %}?date_from={{ date_from }}&date_to={{ date_to }}&driver={{ driver_id }}"
+           class="btn btn-blue" target="_blank" rel="noopener">
+            🖨️ View / Print PDF
+        </a>
+    </div>
+
     <!-- Per-driver summary -->
     <h3 style="margin-bottom:12px;">Summary by Driver</h3>
     {% if drivers_summary %}
