@@ -8,15 +8,23 @@ from .models import User, Farmer, Vehicle, Driver, WeighingTransaction, AuditLog
 # ─────────────────────────────────────────
 @admin.register(User)
 class CustomUserAdmin(UserAdmin):
-    list_display  = ('username', 'full_name', 'role', 'is_active')
-    list_filter   = ('role', 'is_active')
+    list_display  = ('username', 'full_name', 'role', 'is_active', 'must_reset_password')
+    list_filter   = ('role', 'is_active', 'must_reset_password')
     search_fields = ('username', 'full_name')
 
     fieldsets = UserAdmin.fieldsets + (
         ('Role & Profile', {
-            'fields': ('role', 'full_name')
+            'fields': ('role', 'full_name', 'must_reset_password')
         }),
     )
+
+    def save_model(self, request, obj, form, change):
+        # Any account created here (Django's built-in admin), not just
+        # through the app's own "Add User" screen, should still be
+        # forced to set its own password on first login.
+        if not change:
+            obj.must_reset_password = True
+        super().save_model(request, obj, form, change)
 
 
 # ─────────────────────────────────────────

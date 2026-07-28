@@ -26,6 +26,14 @@ class User(AbstractUser):
 
     is_active = models.BooleanField(default=True)
 
+    must_reset_password = models.BooleanField(
+        default=False,
+        help_text="If True, the user is forced to set a new password "
+                  "immediately after logging in — e.g. a newly created "
+                  "account, or an account whose password an administrator "
+                  "just reset."
+    )
+
     def __str__(self):
         return f"{self.full_name} ({self.role})"
 
@@ -361,6 +369,7 @@ class AuditLog(models.Model):
         ('driver_created',  'Driver Created'),
         ('driver_updated',  'Driver Updated'),
         ('payment_marked',  'Driver Payment Marked'),
+        ('password_self_reset', 'User Completed Mandatory Password Reset'),
         ('vehicle_created', 'Vehicle Created'),
         ('report_viewed',   'Report Viewed'),
         ('receipt_printed', 'Receipt Printed'),

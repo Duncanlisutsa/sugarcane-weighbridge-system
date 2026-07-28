@@ -126,6 +126,61 @@ def get_client_ip(request):
         return x_forwarded_for.split(',')[0]
     return request.META.get('REMOTE_ADDR')
 
+
+# ─────────────────────────────────────────
+# MANDATORY PASSWORD RESET
+# Shown to any user whose account has must_reset_password=True —
+# newly created accounts, and accounts an admin has just reset.
+# ForcePasswordResetMiddleware redirects here automatically until
+# the user completes it.
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def force_password_reset(request):
+    # If the flag is already clear (e.g. they refreshed after
+    # succeeding, or reached this URL directly with nothing to do),
+    # just send them on to their normal dashboard.
+    if not request.user.must_reset_password:
+        return redirect_by_role(request.user)
+
+    if request.method == 'POST':
+        current_password = request.POST.get('current_password', '')
+        new_password     = request.POST.get('new_password', '')
+        confirm_password = request.POST.get('confirm_password', '')
+
+        if not request.user.check_password(current_password):
+            messages.error(request, "Your current password is incorrect.")
+        elif new_password != confirm_password:
+            messages.error(request, "New passwords do not match.")
+        elif len(new_password) < 8:
+            messages.error(request, "New password must be at least 8 characters.")
+        elif request.user.check_password(new_password):
+            messages.error(
+                request,
+                "New password must be different from your current password."
+            )
+        else:
+            from django.contrib.auth import update_session_auth_hash
+
+            request.user.set_password(new_password)
+            request.user.must_reset_password = False
+            request.user.save()
+            # Keep the user logged in after changing their own password —
+            # otherwise Django invalidates the session on password change.
+            update_session_auth_hash(request, request.user)
+
+            AuditLog.objects.create(
+                user       = request.user,
+                action     = 'password_self_reset',
+                table_name = 'user',
+                record_id  = request.user.id,
+                new_value  = "User completed mandatory password reset",
+                ip_address = get_client_ip(request)
+            )
+            messages.success(request, "Password updated successfully.")
+            return redirect_by_role(request.user)
+
+    return render(request, 'weighapp/force_password_reset.html')
+
 from django.utils import timezone
 from .forms import GrossWeightForm, TareWeightForm, FarmerForm, VehicleForm, AllocationForm, DriverForm
 
@@ -870,6 +925,7 @@ def add_user(request):
             email     = email,
             full_name = full_name,
             role      = role,
+            must_reset_password = True,
         )
         AuditLog.objects.create(
             user       = request.user,
@@ -879,7 +935,11 @@ def add_user(request):
             new_value  = f"{full_name} ({role})",
             ip_address = get_client_ip(request)
         )
-        messages.success(request, f"User {full_name} created successfully.")
+        messages.success(
+            request,
+            f"User {full_name} created successfully. They will be asked "
+            f"to set their own password the first time they log in."
+        )
         return redirect('manage_users')
 
     return render(request, 'weighapp/add_user.html', {})
@@ -920,6 +980,7 @@ def reset_password(request, pk):
             return redirect('reset_password', pk=pk)
 
         user.set_password(new_password)
+        user.must_reset_password = True
         user.save()
 
         AuditLog.objects.create(
@@ -932,7 +993,8 @@ def reset_password(request, pk):
         )
         messages.success(
             request,
-            f"Password for {user.full_name} has been reset successfully."
+            f"Password for {user.full_name} has been reset successfully. "
+            f"They will be asked to set their own password next time they log in."
         )
         return redirect('manage_users')
 
