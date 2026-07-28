@@ -2,8 +2,9 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    # Auth
-    path('',        views.login_view,       name='login'),
+    # Landing / Auth
+    path('',        views.landing_view,     name='landing'),
+    path('login/',  views.login_view,       name='login'),
     path('logout/', views.logout_view,      name='logout'),
     path('force-password-reset/', views.force_password_reset, name='force_password_reset'),
 
@@ -32,18 +33,18 @@ urlpatterns = [
     path('allocate/',    views.allocate_tractor, name='allocate_tractor'),
     path('allocations/', views.view_allocations, name='view_allocations'),
     path('api/farmer-vehicle/<int:farmer_id>/', views.api_farmer_vehicle, name='api_farmer_vehicle'),
-    
+
     #Reports
     path('reports/', views.reports, name='reports'),
     path('reports/export/', views.export_report_pdf, name='export_report_pdf'),
-    
+
     # User management
     path('users/',            views.manage_users, name='manage_users'),
     path('users/add/',        views.add_user,     name='add_user'),
     path('users/<int:pk>/toggle/', views.toggle_user, name='toggle_user'),
-    
+
     path('users/<int:pk>/reset-password/', views.reset_password, name='reset_password'),
-    
+
     # Manager read-only views
     path('farmers/',  views.view_farmers,  name='view_farmers'),
     path('vehicles/', views.view_vehicles, name='view_vehicles'),

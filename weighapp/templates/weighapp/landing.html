@@ -1,0 +1,137 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sugarcane Weighbridge System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html, body {
+            height: 100%;
+            font-family: Arial, sans-serif;
+        }
+
+        .hero {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-image:
+                linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.75) 100%),
+                url("{% static 'weighapp/images/farm.jpg' %}");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            color: #fff;
+        }
+
+        .hero-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 20px 32px;
+        }
+
+        .hero-brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .hero-nav .btn-login {
+            background: #1B5E20;
+            color: #fff;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: bold;
+            padding: 9px 22px;
+            border-radius: 6px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            transition: background 0.2s;
+        }
+        .hero-nav .btn-login:hover { background: #2E7D32; }
+
+        .hero-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 24px;
+        }
+
+        .hero-content h1 {
+            font-size: 42px;
+            max-width: 720px;
+            line-height: 1.25;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
+        }
+
+        .hero-content p {
+            margin-top: 16px;
+            font-size: 16px;
+            max-width: 560px;
+            color: #E8F5E9;
+            text-shadow: 0 1px 6px rgba(0,0,0,0.5);
+        }
+
+        .hero-content .btn-login-large {
+            margin-top: 32px;
+            background: #1B5E20;
+            color: #fff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: bold;
+            padding: 14px 40px;
+            border-radius: 8px;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.35);
+            transition: background 0.2s, transform 0.15s;
+        }
+        .hero-content .btn-login-large:hover {
+            background: #2E7D32;
+            transform: translateY(-1px);
+        }
+
+        .hero-footer {
+            text-align: center;
+            padding: 16px;
+            font-size: 12px;
+            color: #C8E6C9;
+        }
+
+        @media (max-width: 600px) {
+            .hero-content h1 { font-size: 30px; }
+        }
+    </style>
+</head>
+<body>
+    <div class="hero">
+        <nav class="hero-nav">
+            <div class="hero-brand">
+                <span style="font-size:24px;">🌿</span>
+                Sugarcane Weighbridge System
+            </div>
+            <a href="{% url 'login' %}" class="btn-login">Login</a>
+        </nav>
+
+        <div class="hero-content">
+            <h1>Digital Sugarcane Weighbridge Management</h1>
+            <p>
+                Weigh, track, and manage sugarcane deliveries end-to-end —
+                from farmer registration to tractor allocation, weighing,
+                and payment records.
+            </p>
+            <a href="{% url 'login' %}" class="btn-login-large">Login to your account</a>
+        </div>
+
+        <div class="hero-footer">
+            &copy; {% now "Y" %} Digital Sugarcane Weighbridge System
+        </div>
+    </div>
+</body>
+</html>

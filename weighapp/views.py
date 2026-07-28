@@ -8,7 +8,13 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import User, Farmer, Vehicle, Driver, WeighingTransaction, AuditLog, TractorAllocation
 
-
+# ─────────────────────────────────────────
+# LANDING PAGE
+# ─────────────────────────────────────────
+def landing_view(request):
+    if request.user.is_authenticated:
+        return redirect_by_role(request.user)
+    return render(request, 'weighapp/landing.html')
 # ─────────────────────────────────────────
 # LOGIN VIEW
 # ─────────────────────────────────────────
