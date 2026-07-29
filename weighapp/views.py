@@ -58,7 +58,7 @@ def logout_view(request):
             ip_address=get_client_ip(request)
         )
     logout(request)
-    return redirect('login')
+    return redirect('landing')
 
 
 # ─────────────────────────────────────────

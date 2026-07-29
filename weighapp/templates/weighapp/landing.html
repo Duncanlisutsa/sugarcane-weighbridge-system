@@ -18,13 +18,39 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            background-image:
-                linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.75) 100%),
-                url("{% static 'weighapp/images/farm.jpg' %}");
+            overflow: hidden;
+            color: #fff;
+        }
+
+        .hero-slide {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            color: #fff;
+            opacity: 0;
+            transition: opacity 1.8s ease-in-out;
+            z-index: 0;
+        }
+        .hero-slide.active {
+            opacity: 1;
+            z-index: 1;
+        }
+
+        .hero-overlay {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(180deg, rgba(0,0,0,0.55) 0%, rgba(0,0,0,0.35) 45%, rgba(0,0,0,0.75) 100%);
+            z-index: 2;
+        }
+
+        .hero-nav, .hero-content, .hero-footer {
+            position: relative;
+            z-index: 3;
         }
 
         .hero-nav {
@@ -104,6 +130,24 @@
             color: #C8E6C9;
         }
 
+        /* Small dots showing slide position (optional, purely visual) */
+        .hero-dots {
+            display: flex;
+            justify-content: center;
+            gap: 8px;
+            padding-bottom: 14px;
+        }
+        .hero-dots span {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.4);
+            transition: background 0.3s;
+        }
+        .hero-dots span.active {
+            background: #fff;
+        }
+
         @media (max-width: 600px) {
             .hero-content h1 { font-size: 30px; }
         }
@@ -111,6 +155,9 @@
 </head>
 <body>
     <div class="hero">
+        <div id="slideContainer"></div>
+        <div class="hero-overlay"></div>
+
         <nav class="hero-nav">
             <div class="hero-brand">
                 <span style="font-size:24px;">🌿</span>
@@ -129,9 +176,50 @@
             <a href="{% url 'login' %}" class="btn-login-large">Login to your account</a>
         </div>
 
+        <div class="hero-dots" id="dotsContainer"></div>
         <div class="hero-footer">
             &copy; {% now "Y" %} Digital Sugarcane Weighbridge System
         </div>
     </div>
+
+    <script>
+        // Add or remove filenames here — just make sure each file exists in
+        // weighapp/static/weighapp/images/
+        const slideImages = [
+            "{% static 'weighapp/images/farm.png' %}",
+            "{% static 'weighapp/images/farm2.png' %}",
+            "{% static 'weighapp/images/farm3.png' %}"
+        ];
+
+        const slideContainer = document.getElementById('slideContainer');
+        const dotsContainer = document.getElementById('dotsContainer');
+
+        slideImages.forEach((url, i) => {
+            const slide = document.createElement('div');
+            slide.className = 'hero-slide' + (i === 0 ? ' active' : '');
+            slide.style.backgroundImage = `url("${url}")`;
+            slideContainer.appendChild(slide);
+
+            const dot = document.createElement('span');
+            if (i === 0) dot.className = 'active';
+            dotsContainer.appendChild(dot);
+        });
+
+        const slides = document.querySelectorAll('.hero-slide');
+        const dots = document.querySelectorAll('.hero-dots span');
+        let current = 0;
+
+        function nextSlide() {
+            slides[current].classList.remove('active');
+            dots[current].classList.remove('active');
+            current = (current + 1) % slides.length;
+            slides[current].classList.add('active');
+            dots[current].classList.add('active');
+        }
+
+        if (slides.length > 1) {
+            setInterval(nextSlide, 5000); // change slide every 5 seconds
+        }
+    </script>
 </body>
 </html>
