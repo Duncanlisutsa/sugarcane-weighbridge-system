@@ -11,12 +11,15 @@ import africastalking
 import requests
 import json
 from django.conf import settings
+from .models import NotificationLog
 
 
 def send_sms(phone_number, message):
     """
     Send SMS using Africa's Talking API directly
     with SSL verification disabled for compatibility.
+    Returns a (success, error_detail) tuple — error_detail is empty
+    on success, and holds the failure reason otherwise.
     """
     try:
         # Format phone number
@@ -53,13 +56,13 @@ def send_sms(phone_number, message):
         print(f"SMS response: {response.status_code} — {response.text}")
 
         if response.status_code == 201:
-            return True
+            return True, ''
         else:
-            return False
+            return False, f"HTTP {response.status_code}: {response.text}"
 
     except Exception as e:
         print(f"SMS failed: {e}")
-        return False
+        return False, str(e)
 
 
 def send_gross_weight_sms(transaction):
@@ -80,7 +83,17 @@ def send_gross_weight_sms(transaction):
         f"- Weighbridge System"
     )
 
-    return send_sms(phone, message)
+    success, error = send_sms(phone, message)
+    NotificationLog.objects.create(
+        channel            = 'sms',
+        notification_type  = 'gross_weight',
+        recipient          = phone,
+        farmer             = farmer,
+        transaction        = transaction,
+        status             = 'sent' if success else 'failed',
+        error_message      = error,
+    )
+    return success
 
 
 def send_completion_sms(transaction):
@@ -101,7 +114,17 @@ def send_completion_sms(transaction):
         f"- Weighbridge System"
     )
 
-    return send_sms(phone, message)
+    success, error = send_sms(phone, message)
+    NotificationLog.objects.create(
+        channel            = 'sms',
+        notification_type  = 'completion',
+        recipient          = phone,
+        farmer             = farmer,
+        transaction        = transaction,
+        status             = 'sent' if success else 'failed',
+        error_message      = error,
+    )
+    return success
 
 
 def send_allocation_sms(allocation):
@@ -122,7 +145,17 @@ def send_allocation_sms(allocation):
         f"- Weighbridge System"
     )
 
-    return send_sms(phone, message)
+    success, error = send_sms(phone, message)
+    NotificationLog.objects.create(
+        channel            = 'sms',
+        notification_type  = 'allocation',
+        recipient          = phone,
+        farmer             = farmer,
+        allocation         = allocation,
+        status             = 'sent' if success else 'failed',
+        error_message      = error,
+    )
+    return success
 
 
 def send_allocation_sms_async(allocation):

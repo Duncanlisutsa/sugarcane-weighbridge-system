@@ -322,7 +322,7 @@ def weighing_step2(request, pk):
 # ─────────────────────────────────────────
 @login_required(login_url='login')
 def receipt(request, pk):
-    transaction = WeighingTransaction.objects.get(pk=pk)
+    transaction = WeighingTransaction.objects.prefetch_related('notification_logs').get(pk=pk)
     AuditLog.objects.create(
         user       = request.user,
         action     = 'receipt_printed',
@@ -701,11 +701,11 @@ def allocate_tractor(request):
 def view_allocations(request):
     active_allocations = TractorAllocation.objects.filter(
         status='active'
-    ).select_related('vehicle', 'farmer', 'driver').order_by('allocated_at')
+    ).select_related('vehicle', 'farmer', 'driver').prefetch_related('notification_logs').order_by('allocated_at')
 
     completed_allocations = TractorAllocation.objects.filter(
         status='completed'
-    ).select_related('vehicle', 'farmer', 'driver').order_by('-released_at')[:20]
+    ).select_related('vehicle', 'farmer', 'driver').prefetch_related('notification_logs').order_by('-released_at')[:20]
 
     context = {
         'active_allocations':    active_allocations,

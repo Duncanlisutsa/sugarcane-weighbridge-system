@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
-from .models import User, Farmer, Vehicle, Driver, WeighingTransaction, AuditLog, TractorAllocation
+from .models import User, Farmer, Vehicle, Driver, WeighingTransaction, AuditLog, TractorAllocation, NotificationLog
 
 
 # ─────────────────────────────────────────
@@ -91,6 +91,27 @@ class AuditLogAdmin(admin.ModelAdmin):
     search_fields = ('user__full_name',)
     readonly_fields = ('user', 'action', 'table_name', 'record_id',
                        'old_value', 'new_value', 'ip_address', 'logged_at')
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+# ─────────────────────────────────────────
+# NOTIFICATION LOG ADMIN
+# Read-only — shows the outcome of every SMS/email attempt sent
+# to a farmer, linked back to the transaction or allocation.
+# ─────────────────────────────────────────
+@admin.register(NotificationLog)
+class NotificationLogAdmin(admin.ModelAdmin):
+    list_display  = ('sent_at', 'channel', 'notification_type', 'recipient',
+                     'farmer', 'status')
+    list_filter   = ('channel', 'notification_type', 'status')
+    search_fields = ('recipient', 'farmer__full_name', 'error_message')
+    readonly_fields = ('channel', 'notification_type', 'recipient', 'farmer',
+                       'transaction', 'allocation', 'status', 'error_message', 'sent_at')
 
     def has_add_permission(self, request):
         return False

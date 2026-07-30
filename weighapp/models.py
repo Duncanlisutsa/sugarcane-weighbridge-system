@@ -395,3 +395,71 @@ class AuditLog(models.Model):
 
     def __str__(self):
         return f"{self.logged_at} | {self.user} | {self.action}"
+
+
+# ─────────────────────────────────────────
+# TABLE 6: NOTIFICATION LOG
+# Records the outcome of every SMS/email attempt sent to a farmer —
+# gross weight, completion, or tractor allocation notifications —
+# so delivery success/failure can be checked against a specific
+# transaction or allocation instead of only appearing in server logs.
+# ─────────────────────────────────────────
+class NotificationLog(models.Model):
+
+    CHANNEL_CHOICES = [
+        ('sms',   'SMS'),
+        ('email', 'Email'),
+    ]
+
+    NOTIFICATION_TYPE_CHOICES = [
+        ('gross_weight', 'Gross Weight Recorded'),
+        ('completion',   'Weighing Complete'),
+        ('allocation',   'Tractor Allocated'),
+    ]
+
+    STATUS_CHOICES = [
+        ('sent',   'Sent'),
+        ('failed', 'Failed'),
+    ]
+
+    channel           = models.CharField(max_length=10, choices=CHANNEL_CHOICES)
+    notification_type = models.CharField(max_length=20, choices=NOTIFICATION_TYPE_CHOICES)
+    recipient          = models.CharField(
+        max_length=150,
+        help_text="Phone number or email address the message was sent to"
+    )
+
+    farmer = models.ForeignKey(
+        Farmer,
+        on_delete=models.SET_NULL,
+        null=True,
+        related_name='notification_logs'
+    )
+
+    transaction = models.ForeignKey(
+        WeighingTransaction,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notification_logs',
+        help_text="Set for gross-weight and completion notifications"
+    )
+
+    allocation = models.ForeignKey(
+        TractorAllocation,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='notification_logs',
+        help_text="Set for tractor-allocation notifications"
+    )
+
+    status        = models.CharField(max_length=10, choices=STATUS_CHOICES)
+    error_message = models.TextField(blank=True)
+    sent_at       = models.DateTimeField(default=timezone.now)
+
+    class Meta:
+        ordering = ['-sent_at']
+
+    def __str__(self):
+        return f"{self.get_channel_display()} to {self.recipient} — {self.status}"

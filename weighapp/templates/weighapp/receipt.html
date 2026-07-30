@@ -104,6 +104,37 @@
     </div>
 </div>
 
+{% if transaction.notification_logs.all %}
+<div class="card" style="max-width:600px; margin:16px auto 0;">
+    <h3 style="margin-top:0; font-size:15px; color:#555;">📨 Farmer Notification Status</h3>
+    <table style="width:100%;">
+        <thead>
+            <tr>
+                <th style="text-align:left;">Stage</th>
+                <th style="text-align:left;">Channel</th>
+                <th style="text-align:left;">Recipient</th>
+                <th style="text-align:left;">Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for log in transaction.notification_logs.all %}
+            <tr>
+                <td>{{ log.get_notification_type_display }}</td>
+                <td>{{ log.get_channel_display }}</td>
+                <td>{{ log.recipient }}</td>
+                <td>
+                    <span class="badge badge-{% if log.status == 'sent' %}green{% else %}red{% endif %}"
+                          title="{{ log.error_message }}">
+                        {{ log.get_status_display }}
+                    </span>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+{% endif %}
+
 <div style="display:flex; gap:12px; margin-top:16px;
             max-width:600px; margin-left:auto; margin-right:auto;">
     <button onclick="window.print()"

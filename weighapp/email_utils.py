@@ -1,15 +1,18 @@
 from django.conf import settings
 from django.core.mail import send_mail
 import threading
+from .models import NotificationLog
 
 
 def send_email(to_email, subject, message):
     """
     Send an email notification using Django's configured
     SMTP backend (see EMAIL_* settings in weighbridge/settings.py).
+    Returns a (success, error_detail) tuple — error_detail is empty
+    on success, and holds the failure reason otherwise.
     """
     if not to_email:
-        return False
+        return False, "No email address on file."
 
     try:
         send_mail(
@@ -19,11 +22,11 @@ def send_email(to_email, subject, message):
             [to_email],
             fail_silently=False,
         )
-        return True
+        return True, ''
 
     except Exception as e:
         print(f"Email failed: {e}")
-        return False
+        return False, str(e)
 
 
 def send_gross_weight_email(transaction):
@@ -47,7 +50,17 @@ def send_gross_weight_email(transaction):
         f"- Weighbridge System"
     )
 
-    return send_email(farmer.email, subject, message)
+    success, error = send_email(farmer.email, subject, message)
+    NotificationLog.objects.create(
+        channel            = 'email',
+        notification_type  = 'gross_weight',
+        recipient          = farmer.email,
+        farmer             = farmer,
+        transaction        = transaction,
+        status             = 'sent' if success else 'failed',
+        error_message      = error,
+    )
+    return success
 
 
 def send_completion_email(transaction):
@@ -72,7 +85,17 @@ def send_completion_email(transaction):
         f"- Weighbridge System"
     )
 
-    return send_email(farmer.email, subject, message)
+    success, error = send_email(farmer.email, subject, message)
+    NotificationLog.objects.create(
+        channel            = 'email',
+        notification_type  = 'completion',
+        recipient          = farmer.email,
+        farmer             = farmer,
+        transaction        = transaction,
+        status             = 'sent' if success else 'failed',
+        error_message      = error,
+    )
+    return success
 
 
 def send_allocation_email(allocation):
@@ -95,7 +118,17 @@ def send_allocation_email(allocation):
         f"- Weighbridge System"
     )
 
-    return send_email(farmer.email, subject, message)
+    success, error = send_email(farmer.email, subject, message)
+    NotificationLog.objects.create(
+        channel            = 'email',
+        notification_type  = 'allocation',
+        recipient          = farmer.email,
+        farmer             = farmer,
+        allocation         = allocation,
+        status             = 'sent' if success else 'failed',
+        error_message      = error,
+    )
+    return success
 
 
 def send_allocation_email_async(allocation):

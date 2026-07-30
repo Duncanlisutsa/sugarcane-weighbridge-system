@@ -29,6 +29,7 @@
                     <th>Time Elapsed</th>
                     <th>Status</th>
                     <th>Allocated By</th>
+                    <th>Notifications</th>
                 </tr>
             </thead>
             <tbody>
@@ -45,6 +46,16 @@
                         </span>
                     </td>
                     <td>{{ a.allocated_by.full_name|default:"—" }}</td>
+                    <td>
+                        {% for log in a.notification_logs.all %}
+                        <span class="badge badge-{% if log.status == 'sent' %}green{% else %}red{% endif %}"
+                              title="{% if log.error_message %}{{ log.error_message }}{% else %}Sent to {{ log.recipient }}{% endif %}">
+                            {{ log.get_channel_display }} {% if log.status == 'sent' %}✓{% else %}✗{% endif %}
+                        </span>
+                        {% empty %}
+                        <span style="color:#999; font-size:12px;">—</span>
+                        {% endfor %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
@@ -70,6 +81,7 @@
                     <th>Allocated At</th>
                     <th>Released At</th>
                     <th>Duration</th>
+                    <th>Notifications</th>
                 </tr>
             </thead>
             <tbody>
@@ -81,6 +93,16 @@
                     <td>{{ a.allocated_at|date:"d M Y, H:i" }}</td>
                     <td>{{ a.released_at|date:"d M Y, H:i" }}</td>
                     <td>{{ a.hours_elapsed|floatformat:1 }} hrs</td>
+                    <td>
+                        {% for log in a.notification_logs.all %}
+                        <span class="badge badge-{% if log.status == 'sent' %}green{% else %}red{% endif %}"
+                              title="{% if log.error_message %}{{ log.error_message }}{% else %}Sent to {{ log.recipient }}{% endif %}">
+                            {{ log.get_channel_display }} {% if log.status == 'sent' %}✓{% else %}✗{% endif %}
+                        </span>
+                        {% empty %}
+                        <span style="color:#999; font-size:12px;">—</span>
+                        {% endfor %}
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
