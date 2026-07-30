@@ -75,6 +75,41 @@ def send_completion_email(transaction):
     return send_email(farmer.email, subject, message)
 
 
+def send_allocation_email(allocation):
+    """
+    Notify the farmer by email that a vehicle and driver have just been
+    allocated to collect their sugarcane (mirrors send_allocation_sms).
+    """
+    farmer = allocation.farmer
+
+    if not farmer.email:
+        return False
+
+    subject = f"Tractor Allocated — {allocation.vehicle.plate_number}"
+    message = (
+        f"Dear {farmer.full_name},\n\n"
+        f"A tractor has been allocated to collect your sugarcane delivery.\n"
+        f"Vehicle: {allocation.vehicle.plate_number} ({allocation.vehicle.make_model})\n"
+        f"Driver: {allocation.driver.full_name}\n"
+        f"Time: {allocation.allocated_at.strftime('%I:%M %p on %d/%m/%Y')}\n\n"
+        f"- Weighbridge System"
+    )
+
+    return send_email(farmer.email, subject, message)
+
+
+def send_allocation_email_async(allocation):
+    """
+    Fire-and-forget version of send_allocation_email — see
+    send_gross_weight_email_async for why.
+    """
+    threading.Thread(
+        target=send_allocation_email,
+        args=(allocation,),
+        daemon=True
+    ).start()
+
+
 def send_gross_weight_email_async(transaction):
     """
     Fire-and-forget version: runs the (slow, SMTP-dependent) email send

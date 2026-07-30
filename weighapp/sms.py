@@ -104,6 +104,39 @@ def send_completion_sms(transaction):
     return send_sms(phone, message)
 
 
+def send_allocation_sms(allocation):
+    """
+    Notify the farmer by SMS that a vehicle and driver have just been
+    allocated to collect their sugarcane, including the allocation
+    time, driver's name, and vehicle registration number.
+    """
+    farmer  = allocation.farmer
+    phone   = farmer.phone
+
+    message = (
+        f"Dear {farmer.full_name}, a tractor has been allocated to "
+        f"collect your sugarcane delivery.\n"
+        f"Vehicle: {allocation.vehicle.plate_number}\n"
+        f"Driver: {allocation.driver.full_name}\n"
+        f"Time: {allocation.allocated_at.strftime('%I:%M %p on %d/%m/%Y')}\n"
+        f"- Weighbridge System"
+    )
+
+    return send_sms(phone, message)
+
+
+def send_allocation_sms_async(allocation):
+    """
+    Fire-and-forget version of send_allocation_sms — see
+    send_gross_weight_sms_async for why.
+    """
+    threading.Thread(
+        target=send_allocation_sms,
+        args=(allocation,),
+        daemon=True
+    ).start()
+
+
 def send_gross_weight_sms_async(transaction):
     """
     Fire-and-forget version: runs the (slow, network-dependent) SMS send

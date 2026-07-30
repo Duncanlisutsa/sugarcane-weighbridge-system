@@ -1,8 +1,8 @@
 from django.shortcuts import render, redirect
 from django.conf import settings
 from django.http import JsonResponse
-from .sms import send_gross_weight_sms_async, send_completion_sms_async
-from .email_utils import send_gross_weight_email_async, send_completion_email_async
+from .sms import send_gross_weight_sms_async, send_completion_sms_async, send_allocation_sms_async
+from .email_utils import send_gross_weight_email_async, send_completion_email_async, send_allocation_email_async
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -667,16 +667,28 @@ def allocate_tractor(request):
                     f"{driver.full_name} is already allocated to another tractor."
                 )
             else:
-                TractorAllocation.objects.create(
+                allocation = TractorAllocation.objects.create(
                     vehicle      = vehicle,
                     farmer       = farmer,
                     driver       = driver,
                     allocated_by = request.user,
                 )
-                messages.success(
-                    request,
-                    f"{vehicle.plate_number} allocated to {farmer.full_name}, driven by {driver.full_name}."
-                )
+
+                # Notify the farmer that a vehicle/driver has been
+                # allocated to collect their delivery — in the
+                # background, same pattern as the weighing notifications
+                send_allocation_sms_async(allocation)
+                if farmer.email:
+                    send_allocation_email_async(allocation)
+
+                notice_parts = [
+                    f"{vehicle.plate_number} allocated to {farmer.full_name}, driven by {driver.full_name}.",
+                    f"SMS notification queued for {farmer.phone}.",
+                ]
+                if farmer.email:
+                    notice_parts.append(f"Email notification queued for {farmer.email}.")
+
+                messages.success(request, " ".join(notice_parts))
                 return redirect('view_allocations')
 
     return render(request, 'weighapp/allocate_tractor.html', {'form': form})
