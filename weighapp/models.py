@@ -373,6 +373,9 @@ class AuditLog(models.Model):
         ('vehicle_created', 'Vehicle Created'),
         ('report_viewed',   'Report Viewed'),
         ('receipt_printed', 'Receipt Printed'),
+        ('user_created',    'User Created'),
+        ('password_reset_by_admin', 'Password Reset by Admin'),
+        ('audit_log_viewed', 'Audit Log Viewed'),
     ]
 
     user = models.ForeignKey(
@@ -382,7 +385,7 @@ class AuditLog(models.Model):
         related_name='audit_logs'
     )
 
-    action     = models.CharField(max_length=20, choices=ACTION_CHOICES)
+    action     = models.CharField(max_length=30, choices=ACTION_CHOICES)
     table_name = models.CharField(max_length=50, blank=True)
     record_id  = models.IntegerField(null=True, blank=True)
     old_value  = models.TextField(blank=True)

@@ -64,6 +64,7 @@
     <div class="navbar-right">
         {% if user.role == 'admin' %}
         <a href="{% url 'manage_users' %}" class="top-link">👥 Manage Users</a>
+        <a href="{% url 'view_audit_log' %}" class="top-link">📜 Audit Log</a>
         <a href="/admin/" class="top-link">⚙️ Admin Panel</a>
         {% endif %}
         <span class="user-info">{{ user.full_name }} ({{ user.role|title }})</span>

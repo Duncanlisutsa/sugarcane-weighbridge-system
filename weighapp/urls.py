@@ -45,6 +45,9 @@ urlpatterns = [
 
     path('users/<int:pk>/reset-password/', views.reset_password, name='reset_password'),
 
+    # Audit trail
+    path('audit-log/', views.view_audit_log, name='view_audit_log'),
+
     # Manager read-only views
     path('farmers/',  views.view_farmers,  name='view_farmers'),
     path('vehicles/', views.view_vehicles, name='view_vehicles'),

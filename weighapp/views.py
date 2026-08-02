@@ -947,7 +947,7 @@ def add_user(request):
         )
         AuditLog.objects.create(
             user       = request.user,
-            action     = 'farmer_created',
+            action     = 'user_created',
             table_name = 'user',
             record_id  = user.id,
             new_value  = f"{full_name} ({role})",
@@ -1003,12 +1003,13 @@ def reset_password(request, pk):
 
         AuditLog.objects.create(
             user       = request.user,
-            action     = 'login',
+            action     = 'password_reset_by_admin',
             table_name = 'user',
             record_id  = user.id,
             new_value  = f"Password reset for {user.full_name}",
             ip_address = get_client_ip(request)
         )
+
         messages.success(
             request,
             f"Password for {user.full_name} has been reset successfully. "
@@ -1218,3 +1219,51 @@ def export_list_pdf(request, list_type):
     story.append(table)
     doc.build(story)
     return response
+
+
+    # ─────────────────────────────────────────
+# AUDIT LOG — Admin only, read-only
+# Every login, logout, record creation/update, payment change,
+# report view and receipt print is written to AuditLog as it
+# happens (see the AuditLog.objects.create(...) calls throughout
+# this file). This view is just the in-app window onto that trail
+# so an admin doesn't need Django admin credentials to check it —
+# filterable by user/action/date and paginated since the table
+# only grows.
+# ─────────────────────────────────────────
+@login_required(login_url='login')
+def view_audit_log(request):
+    if request.user.role != 'admin':
+        return redirect('clerk_dashboard')
+
+    from django.core.paginator import Paginator
+
+    logs = AuditLog.objects.select_related('user').all()
+
+    user_id   = request.GET.get('user', '')
+    action    = request.GET.get('action', '')
+    date_from = request.GET.get('date_from', '')
+    date_to   = request.GET.get('date_to', '')
+
+    if user_id:
+        logs = logs.filter(user__id=user_id)
+    if action:
+        logs = logs.filter(action=action)
+    if date_from:
+        logs = logs.filter(logged_at__date__gte=date_from)
+    if date_to:
+        logs = logs.filter(logged_at__date__lte=date_to)
+
+    paginator = Paginator(logs, 50)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    context = {
+        'page_obj':   page_obj,
+        'users':      User.objects.filter(is_superuser=False).order_by('full_name'),
+        'actions':    AuditLog.ACTION_CHOICES,
+        'user_id':    user_id,
+        'action':     action,
+        'date_from':  date_from,
+        'date_to':    date_to,
+    }
+    return render(request, 'weighapp/audit_log.html', context)
