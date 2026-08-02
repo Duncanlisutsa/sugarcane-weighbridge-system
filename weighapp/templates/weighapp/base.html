@@ -52,6 +52,27 @@
         .badge-yellow { background: #FFF9C4; color: #F57F17; }
         .badge-orange { background: #FFE0B2; color: #E65100; }
         .badge-red { background: #FFCDD2; color: #C62828; }
+        /* ─────────────────────────────────────────
+           PRINT — only the page content (e.g. the
+           receipt card) should ever end up on paper.
+           Nav, sidebars, buttons and flash messages
+           carry account/role info that has no business
+           being on a printed receipt.
+           ───────────────────────────────────────── */
+        @media print {
+            .navbar, .sidebar-left, .sidebar-right, .alert, .btn {
+                display: none !important;
+            }
+            .page-wrapper, .main-content {
+                display: block !important;
+                padding: 0 !important;
+                margin: 0 !important;
+            }
+            .card {
+                box-shadow: none !important;
+            }
+            body { background: white !important; }
+        }
     </style>
 </head>
 <body>
