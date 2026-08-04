@@ -29,7 +29,13 @@ def send_sms(phone_number, message):
             phone_number = '+254' + phone_number
 
         # API endpoint
-        url = 'https://api.sandbox.africastalking.com/version1/messaging'
+        # API endpoint — sandbox app ("sandbox" username) uses the sandbox
+        # host; any live app username hits the production host. This means
+        # switching environments is just an env var change, no code change.
+        if settings.AFRICASTALKING_USERNAME == 'sandbox':
+            url = 'https://api.sandbox.africastalking.com/version1/messaging'
+        else:
+            url = 'https://api.africastalking.com/version1/messaging'
 
         # Headers
         headers = {
