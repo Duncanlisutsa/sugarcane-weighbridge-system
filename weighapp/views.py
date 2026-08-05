@@ -7,6 +7,7 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from .models import User, Farmer, Vehicle, Driver, WeighingTransaction, AuditLog, TractorAllocation
+from .password_utils import validate_password_strength
 
 # ─────────────────────────────────────────
 # LANDING PAGE
@@ -153,12 +154,17 @@ def force_password_reset(request):
         new_password     = request.POST.get('new_password', '')
         confirm_password = request.POST.get('confirm_password', '')
 
+        password_errors = validate_password_strength(new_password)
+
         if not request.user.check_password(current_password):
             messages.error(request, "Your current password is incorrect.")
         elif new_password != confirm_password:
             messages.error(request, "New passwords do not match.")
-        elif len(new_password) < 8:
-            messages.error(request, "New password must be at least 8 characters.")
+        elif password_errors:
+            messages.error(
+                request,
+                "New password must contain " + ", ".join(password_errors) + "."
+            )
         elif request.user.check_password(new_password):
             messages.error(
                 request,
@@ -937,6 +943,14 @@ def add_user(request):
             messages.error(request, f"Username '{username}' already exists.")
             return redirect('add_user')
 
+        password_errors = validate_password_strength(password)
+        if password_errors:
+            messages.error(
+                request,
+                "Password must contain " + ", ".join(password_errors) + "."
+            )
+            return redirect('add_user')
+
         user = User.objects.create_user(
             username  = username,
             password  = password,
@@ -993,8 +1007,12 @@ def reset_password(request, pk):
             messages.error(request, "Passwords do not match.")
             return redirect('reset_password', pk=pk)
 
-        if len(new_password) < 8:
-            messages.error(request, "Password must be at least 8 characters.")
+        password_errors = validate_password_strength(new_password)
+        if password_errors:
+            messages.error(
+                request,
+                "Password must contain " + ", ".join(password_errors) + "."
+            )
             return redirect('reset_password', pk=pk)
 
         user.set_password(new_password)

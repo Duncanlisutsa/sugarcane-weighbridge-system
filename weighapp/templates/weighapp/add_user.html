@@ -38,8 +38,17 @@
 
         <div class="form-group">
             <label>Password</label>
-            <input type="password" name="password"
-                   placeholder="Minimum 8 characters" required>
+            <div class="password-wrapper">
+                <input type="password" name="password" class="password-strength"
+                       placeholder="Minimum 8 characters" required>
+                <button type="button" class="password-toggle" onclick="togglePasswordVisibility(this)"></button>
+            </div>
+            <ul class="password-requirements">
+                <li data-rule="length">At least 8 characters</li>
+                <li data-rule="upper">One uppercase letter</li>
+                <li data-rule="lower">One lowercase letter</li>
+                <li data-rule="special">One special character</li>
+            </ul>
         </div>
 
         <div style="display:flex; gap:12px; margin-top:8px;">

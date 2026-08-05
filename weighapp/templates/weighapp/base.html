@@ -73,6 +73,57 @@
             }
             body { background: white !important; }
         }
+        /* ── Password show/hide toggle ───────────────────────────── */
+        .password-wrapper {
+            position: relative;
+        }
+        .password-wrapper input[type="password"],
+        .password-wrapper input[type="text"] {
+            width: 100%;
+            padding-right: 40px;
+            box-sizing: border-box;
+        }
+        .password-toggle {
+            position: absolute;
+            top: 50%;
+            right: 10px;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 4px;
+            display: flex;
+            align-items: center;
+            color: #757575;
+            line-height: 0;
+        }
+        .password-toggle:hover {
+            color: #333;
+        }
+        .password-toggle svg {
+            width: 18px;
+            height: 18px;
+        }
+        .password-requirements {
+            list-style: none;
+            margin-top: 8px;
+            font-size: 12px;
+        }
+        .password-requirements li {
+            color: #C62828;
+            padding: 2px 0;
+            transition: color 0.15s;
+        }
+        .password-requirements li::before {
+            content: "✕ ";
+            font-weight: bold;
+        }
+        .password-requirements li.met {
+            color: #1B5E20;
+        }
+        .password-requirements li.met::before {
+            content: "✓ ";
+        }
     </style>
 </head>
 <body>
@@ -149,5 +200,45 @@
 {% block unauthenticated_content %}{% endblock %}
 </div>
 {% endif %}
+<script>
+    // Shared show/hide toggle for any .password-wrapper on the page.
+    function togglePasswordVisibility(btn) {
+        var input = btn.previousElementSibling;
+        var isHidden = input.type === 'password';
+        input.type = isHidden ? 'text' : 'password';
+        btn.innerHTML = isHidden ? EYE_OFF_ICON : EYE_ICON;
+        btn.setAttribute('aria-label', isHidden ? 'Hide password' : 'Show password');
+    }
+
+    var EYE_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8Z"></path><circle cx="12" cy="12" r="3"></circle></svg>';
+    var EYE_OFF_ICON = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17.94 17.94A10.94 10.94 0 0 1 12 20c-7 0-11-8-11-8a20.6 20.6 0 0 1 5.06-6.06M9.9 4.24A10.9 10.9 0 0 1 12 4c7 0 11 8 11 8a20.6 20.6 0 0 1-3.22 4.53M14.12 14.12a3 3 0 1 1-4.24-4.24"></path><line x1="1" y1="1" x2="23" y2="23"></line></svg>';
+
+    // Initialize every toggle button's starting icon on page load.
+    document.querySelectorAll('.password-toggle').forEach(function (btn) {
+        btn.innerHTML = EYE_ICON;
+        btn.setAttribute('aria-label', 'Show password');
+    });
+
+    // Live requirements checklist for any input marked .password-strength.
+    // Mirrors the server-side rules in weighapp/password_utils.py — this
+    // is just UX feedback; the server is still the source of truth.
+    var PASSWORD_RULES = {
+        length:  function (v) { return v.length >= 8; },
+        upper:   function (v) { return /[A-Z]/.test(v); },
+        lower:   function (v) { return /[a-z]/.test(v); },
+        special: function (v) { return /[^A-Za-z0-9]/.test(v); }
+    };
+
+    document.querySelectorAll('.password-strength').forEach(function (input) {
+        var list = input.closest('.form-group').querySelector('.password-requirements');
+        if (!list) return;
+        input.addEventListener('input', function () {
+            list.querySelectorAll('li').forEach(function (li) {
+                var rule = PASSWORD_RULES[li.dataset.rule];
+                li.classList.toggle('met', rule && rule(input.value));
+            });
+        });
+    });
+</script>
 </body>
 </html>
